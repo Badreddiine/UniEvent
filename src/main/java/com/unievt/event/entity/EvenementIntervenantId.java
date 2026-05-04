@@ -1,4 +1,4 @@
-package com.unievt.entity;
+package com.unievt.event.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

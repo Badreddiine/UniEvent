@@ -1,4 +1,4 @@
-package com.unievt.dto.inscription;
+package com.unievt.inscription.dto;
 
 import com.unievt.enums.StatutInscriptionEnum;
 import lombok.AllArgsConstructor;

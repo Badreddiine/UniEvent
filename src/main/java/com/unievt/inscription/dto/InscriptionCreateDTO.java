@@ -1,4 +1,4 @@
-package com.unievt.dto.inscription;
+package com.unievt.inscription.dto;
 
 import java.time.LocalDateTime;
 
@@ -11,14 +11,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InscriptionResponseDTO {
-    private Long id;
+public class InscriptionCreateDTO {
     private LocalDateTime dateInscription;
     private StatutInscriptionEnum statut;
     private String qrCode;
     private Boolean present;
     private Long etudiantId;
-    private String etudiantName;
     private Long evenementId;
-    private String evenementTitle;
 }

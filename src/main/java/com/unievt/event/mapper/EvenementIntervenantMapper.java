@@ -1,16 +1,15 @@
-package com.unievt.mapper;
+package com.unievt.event.mapper;
 
-import com.unievt.dto.evenementintervenant.EvenementIntervenantCreateDTO;
-import com.unievt.dto.evenementintervenant.EvenementIntervenantResponseDTO;
-import com.unievt.entity.EvenementIntervenant;
-import com.unievt.entity.EvenementIntervenantId;
+import com.unievt.event.dto.EvenementIntervenantCreateDTO;
+import com.unievt.event.dto.EvenementIntervenantResponseDTO;
+import com.unievt.event.entity.EvenementIntervenant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface EvenementIntervenantMapper {
 
-    @Mapping(target = "id", expression = "java(new com.unievt.entity.EvenementIntervenantId(dto.getEvenementId(), dto.getIntervenantId()))")
+    @Mapping(target = "id", expression = "java(new com.unievt.event.entity.EvenementIntervenantId(dto.getEvenementId(), dto.getIntervenantId()))")
     @Mapping(target = "evenement.id", source = "evenementId")
     @Mapping(target = "intervenant.id", source = "intervenantId")
     EvenementIntervenant toEntity(EvenementIntervenantCreateDTO dto);

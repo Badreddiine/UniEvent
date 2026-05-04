@@ -1,7 +1,7 @@
-package com.unievt.repository;
+package com.unievt.event.repository;
 
-import com.unievt.entity.EvenementIntervenant;
-import com.unievt.entity.EvenementIntervenantId;
+import com.unievt.event.entity.EvenementIntervenant;
+import com.unievt.event.entity.EvenementIntervenantId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

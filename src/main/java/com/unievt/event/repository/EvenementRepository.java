@@ -1,10 +1,10 @@
-package com.unievt.repository;
+package com.unievt.event.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.unievt.entity.Evenement;
+import com.unievt.event.entity.Evenement;
 import com.unievt.enums.CategorieEnum;
 import com.unievt.enums.StatutEvenementEnum;
 

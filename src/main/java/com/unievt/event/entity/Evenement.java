@@ -1,14 +1,17 @@
-package com.unievt.entity;
+package com.unievt.event.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.unievt.club.entity.Club;
+import com.unievt.inscription.entity.Inscription;
 import com.unievt.enums.CategorieEnum;
 import com.unievt.enums.StatutEvenementEnum;
 import com.unievt.enums.TypeEvenementEnum;
 import com.unievt.enums.VisibiliteEnum;
 
+import com.unievt.user.entity.Utilisateur;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,6 +26,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +35,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Evenement {
 
     @Id

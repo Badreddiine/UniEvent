@@ -1,9 +1,9 @@
-package com.unievt.mapper;
+package com.unievt.event.mapper;
 
-import com.unievt.dto.evenement.EvenementCreateDTO;
-import com.unievt.dto.evenement.EvenementResponseDTO;
-import com.unievt.dto.evenement.EvenementUpdateDTO;
-import com.unievt.entity.Evenement;
+import com.unievt.event.dto.EvenementCreateDTO;
+import com.unievt.event.dto.EvenementResponseDTO;
+import com.unievt.event.dto.EvenementUpdateDTO;
+import com.unievt.event.entity.Evenement;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

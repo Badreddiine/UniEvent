@@ -2,6 +2,7 @@ package com.unievt.event.mapper;
 
 import com.unievt.event.dto.IntervenantDTO;
 import com.unievt.event.dto.IntervenantResponseDTO;
+import com.unievt.event.dto.IntervenantUpdateDTO;
 import com.unievt.event.entity.Intervenant;
 import org.mapstruct.*;
 
@@ -13,5 +14,5 @@ public interface IntervenantMapper {
     IntervenantResponseDTO toResponseDTO(Intervenant entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntityFromDTO(IntervenantDTO dto, @MappingTarget Intervenant entity);
+    void updateEntityFromDTO(IntervenantUpdateDTO dto, @MappingTarget Intervenant entity);
 }

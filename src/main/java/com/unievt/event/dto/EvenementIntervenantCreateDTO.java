@@ -1,4 +1,4 @@
-package com.unievt.dto.evenementintervenant;
+package com.unievt.event.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EvenementIntervenantResponseDTO {
+public class EvenementIntervenantCreateDTO {
     private Long evenementId;
     private Long intervenantId;
-    private String intervenantName;
-    private String evenementTitle;
 }

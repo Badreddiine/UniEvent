@@ -1,4 +1,4 @@
-package com.unievt.dto.evenement;
+package com.unievt.event.dto;
 
 import com.unievt.enums.StatutEvenementEnum;
 

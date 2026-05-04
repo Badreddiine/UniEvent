@@ -1,4 +1,4 @@
-package com.unievt.dto.evenement;
+package com.unievt.event.dto;
 
 import java.time.LocalDateTime;
 

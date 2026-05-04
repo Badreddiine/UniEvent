@@ -2,6 +2,7 @@ package com.unievt.user.mapper;
 
 import com.unievt.user.dto.EtudiantCreateDTO;
 import com.unievt.user.dto.EtudiantResponseDTO;
+import com.unievt.user.dto.EtudiantUpdateDTO;
 import com.unievt.user.entity.Etudiant;
 import org.mapstruct.*;
 
@@ -13,5 +14,5 @@ public interface EtudiantMapper {
     EtudiantResponseDTO toResponseDTO(Etudiant entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntityFromDTO(EtudiantCreateDTO dto, @MappingTarget Etudiant entity);
+    void updateEntityFromDTO(EtudiantUpdateDTO dto, @MappingTarget Etudiant entity);
 }

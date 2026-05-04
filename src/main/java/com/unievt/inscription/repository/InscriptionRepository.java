@@ -1,6 +1,6 @@
-package com.unievt.repository;
+package com.unievt.inscription.repository;
 
-import com.unievt.entity.Inscription;
+import com.unievt.inscription.entity.Inscription;
 import com.unievt.enums.StatutInscriptionEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 

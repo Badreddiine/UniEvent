@@ -1,9 +1,9 @@
-package com.unievt.mapper;
+package com.unievt.inscription.mapper;
 
-import com.unievt.dto.inscription.InscriptionCreateDTO;
-import com.unievt.dto.inscription.InscriptionResponseDTO;
-import com.unievt.dto.inscription.InscriptionUpdateDTO;
-import com.unievt.entity.Inscription;
+import com.unievt.inscription.dto.InscriptionCreateDTO;
+import com.unievt.inscription.dto.InscriptionResponseDTO;
+import com.unievt.inscription.dto.InscriptionUpdateDTO;
+import com.unievt.inscription.entity.Inscription;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

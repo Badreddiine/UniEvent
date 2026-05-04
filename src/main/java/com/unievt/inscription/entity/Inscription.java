@@ -1,9 +1,11 @@
-package com.unievt.entity;
+package com.unievt.inscription.entity;
 
 import java.time.LocalDateTime;
 
 import com.unievt.enums.StatutInscriptionEnum;
 
+import com.unievt.event.entity.Evenement;
+import com.unievt.user.entity.Utilisateur;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -24,6 +27,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Inscription {
 
     @Id
