@@ -1,19 +1,28 @@
 package com.unievt;
 
-import com.unievt.club.entity.Club;
-import com.unievt.club.repository.ClubRepository;
-import com.unievt.enums.RoleEnum;
-import com.unievt.event.entity.Intervenant;
-import com.unievt.event.repository.IntervenantRepository;
-import com.unievt.user.entity.Etudiant;
-import com.unievt.user.entity.Utilisateur;
-import com.unievt.user.repository.EtudiantRepository;
-import com.unievt.user.repository.UtilisateurRepository;
+import com.unievt.entity.Club;
+import com.unievt.repository.ClubRepository;
+import com.unievt.enums.*;
+import com.unievt.entity.Evenement;
+import com.unievt.entity.EvenementIntervenant;
+import com.unievt.entity.EvenementIntervenantId;
+import com.unievt.entity.Intervenant;
+import com.unievt.repository.EvenementIntervenantRepository;
+import com.unievt.repository.EvenementRepository;
+import com.unievt.repository.IntervenantRepository;
+import com.unievt.entity.Inscription;
+import com.unievt.repository.InscriptionRepository;
+import com.unievt.entity.Etudiant;
+import com.unievt.entity.Utilisateur;
+import com.unievt.repository.EtudiantRepository;
+import com.unievt.repository.UtilisateurRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,100 +36,127 @@ class UniEventBackendApplicationTests {
     @Autowired private EtudiantRepository etudiantRepository;
     @Autowired private ClubRepository clubRepository;
     @Autowired private IntervenantRepository intervenantRepository;
+    @Autowired private EvenementRepository evenementRepository;
+    @Autowired private InscriptionRepository inscriptionRepository;
+    @Autowired private EvenementIntervenantRepository evenementIntervenantRepository;
+
+    // ─── shared fixtures ────────────────────────────────────────────
+    private Utilisateur doyen;
+    private Utilisateur president;
+    private Utilisateur responsable;
+    private Etudiant etudiant1;
+    private Etudiant etudiant2;
+    private Club club;
+    private Intervenant intervenant1;
+    private Intervenant intervenant2;
+    private Evenement evenement;
+
+    @BeforeEach
+    void setUp() {
+        // Users
+        doyen = utilisateurRepository.save(Utilisateur.builder()
+                .nom("Alami").prenom("Hassan")
+                .email("doyen@unievt.ma").motDePasse("pass")
+                .role(RoleEnum.DOYEN).actif(true).build());
+
+        // "president" here is the club's président — modeled by the Club.president FK,
+        // not a permission role. Role is therefore null for this user.
+        president = utilisateurRepository.save(Utilisateur.builder()
+                .nom("Hassoub").prenom("Strike")
+                .email("strike@unievt.ma").motDePasse("pass")
+                .actif(true).build());
+
+        responsable = utilisateurRepository.save(Utilisateur.builder()
+                .nom("Cherkaoui").prenom("Nadia")
+                .email("nadia@unievt.ma").motDePasse("pass")
+                .role(RoleEnum.RESPONSABLE_EVENEMENTS).actif(true).build());
+
+        // Students — étudiant identity comes from the etudiant table itself,
+        // so no permission role is set.
+        etudiant1 = etudiantRepository.save(Etudiant.builder()
+                .nom("Alaoui").prenom("Fatima")
+                .email("fatima@unievt.ma").motDePasse("pass")
+                .actif(true)
+                .filiere("Génie Informatique").anneeEtude(2).cin("AB111111").build());
+
+        etudiant2 = etudiantRepository.save(Etudiant.builder()
+                .nom("Ziani").prenom("Mehdi")
+                .email("mehdi@unievt.ma").motDePasse("pass")
+                .actif(true)
+                .filiere("Génie Civil").anneeEtude(3).cin("CD222222").build());
+
+        // Club
+        club = clubRepository.save(Club.builder()
+                .nom("Club IA").description("Intelligence Artificielle")
+                .categorie("Technologie").actif(true)
+                .president(president).build());
+
+        // Intervenants
+        intervenant1 = intervenantRepository.save(Intervenant.builder()
+                .nom("Dupont").institution("MIT")
+                .biographie("Expert en IA").build());
+
+        intervenant2 = intervenantRepository.save(Intervenant.builder()
+                .nom("Garcia").institution("Stanford")
+                .biographie("Chercheur en NLP").build());
+
+        // Evenement
+        evenement = evenementRepository.save(Evenement.builder()
+                .titre("Conférence IA 2025")
+                .description("Une conférence sur l'IA")
+                .categorie(CategorieEnum.CONFERENCE)
+                .dateDebut(LocalDateTime.now().plusDays(7))
+                .dateFin(LocalDateTime.now().plusDays(7).plusHours(3))
+                .capacite(100)
+                .statut(StatutEvenementEnum.APPROUVE)
+                .visibilite(VisibiliteEnum.UNIVERSITE)
+                .type(TypeEvenementEnum.CLUB)
+                .club(club)
+                .organisateur(president).build());
+    }
 
     // ─────────────────────────────────────────────
     //  UTILISATEUR
     // ─────────────────────────────────────────────
 
     @Test
-    void testSaveAdmin() {
-        Utilisateur admin = Utilisateur.builder()
-                .nom("Bagri").prenom("Ikram")
-                .email("ikram.bagri@unievt.ma")
-                .motDePasse("admin123")
-                .role(RoleEnum.ADMIN).actif(true)
-                .build();
-
-        Utilisateur saved = utilisateurRepository.save(admin);
-        assertNotNull(saved.getId());
-        assertEquals("Bagri", saved.getNom());
-        System.out.println("✅ Admin saved: " + saved.getId());
+    void testAllRolesSaved() {
+        assertEquals(RoleEnum.DOYEN, doyen.getRole());
+        // "president" here is identified by the Club.president FK, not by a role.
+        assertNull(president.getRole());
+        assertEquals(RoleEnum.RESPONSABLE_EVENEMENTS, responsable.getRole());
+        System.out.println(" All roles saved correctly");
     }
 
     @Test
-    void testSaveDoyen() {
-        Utilisateur doyen = Utilisateur.builder()
-                .nom("Alami").prenom("Hassan")
-                .email("hassan.alami@unievt.ma")
-                .motDePasse("doyen123")
-                .role(RoleEnum.DOYEN).actif(true)
-                .build();
-
-        Utilisateur saved = utilisateurRepository.save(doyen);
-        assertNotNull(saved.getId());
-        assertEquals(RoleEnum.DOYEN, saved.getRole());
-        System.out.println("✅ Doyen saved: " + saved.getId());
-    }
-
-    @Test
-    void testSaveResponsableEvenements() {
-        Utilisateur responsable = Utilisateur.builder()
-                .nom("Cherkaoui").prenom("Nadia")
-                .email("nadia.cherkaoui@unievt.ma")
-                .motDePasse("resp123")
-                .role(RoleEnum.RESPONSABLE_EVENEMENTS).actif(true)
-                .build();
-
-        Utilisateur saved = utilisateurRepository.save(responsable);
-        assertNotNull(saved.getId());
-        assertEquals(RoleEnum.RESPONSABLE_EVENEMENTS, saved.getRole());
-        System.out.println("✅ Responsable saved: " + saved.getId());
-    }
-
-    @Test
-    void testFindUtilisateurByEmail() {
-        Utilisateur u = Utilisateur.builder()
-                .nom("Idrissi").prenom("Youssef")
-                .email("youssef.idrissi@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-        utilisateurRepository.save(u);
-
-        Optional<Utilisateur> found = utilisateurRepository.findByEmail("youssef.idrissi@unievt.ma");
+    void testFindByEmail() {
+        Optional<Utilisateur> found = utilisateurRepository.findByEmail("doyen@unievt.ma");
         assertTrue(found.isPresent());
-        assertEquals("Idrissi", found.get().getNom());
-        System.out.println("✅ Found by email: " + found.get().getEmail());
+        assertEquals("Alami", found.get().getNom());
+        System.out.println(" findByEmail works");
     }
 
     @Test
     void testExistsByEmail() {
-        Utilisateur u = Utilisateur.builder()
-                .nom("Moussaoui").prenom("Sara")
-                .email("sara.moussaoui@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ADMIN).actif(true)
-                .build();
-        utilisateurRepository.save(u);
-
-        assertTrue(utilisateurRepository.existsByEmail("sara.moussaoui@unievt.ma"));
-        assertFalse(utilisateurRepository.existsByEmail("nonexistent@unievt.ma"));
-        System.out.println("✅ existsByEmail works correctly");
+        assertTrue(utilisateurRepository.existsByEmail("strike@unievt.ma"));
+        assertFalse(utilisateurRepository.existsByEmail("nobody@unievt.ma"));
+        System.out.println(" existsByEmail works");
     }
 
     @Test
-    void testUtilisateurDateCreationAutoSet() {
-        Utilisateur u = Utilisateur.builder()
-                .nom("Bennis").prenom("Omar")
-                .email("omar.bennis@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .build();
+    void testDateCreationAutoSet() {
+        assertNotNull(doyen.getDateCreation());
+        System.out.println(" dateCreation auto-set: " + doyen.getDateCreation());
+    }
 
-        Utilisateur saved = utilisateurRepository.save(u);
-        utilisateurRepository.flush();
-        assertNotNull(saved.getDateCreation());
-        System.out.println("✅ dateCreation auto-set: " + saved.getDateCreation());
+    @Test
+    void testInactiveUser() {
+        Utilisateur inactif = utilisateurRepository.save(Utilisateur.builder()
+                .nom("Test").prenom("Inactif")
+                .email("inactif@unievt.ma").motDePasse("pass")
+                .actif(false).build()); // role nullable; not relevant for this test
+        assertFalse(inactif.getActif());
+        System.out.println(" Inactive user saved correctly");
     }
 
     // ─────────────────────────────────────────────
@@ -128,86 +164,33 @@ class UniEventBackendApplicationTests {
     // ─────────────────────────────────────────────
 
     @Test
-    void testSaveEtudiant() {
-        Etudiant e = Etudiant.builder()
-                .nom("Alaoui").prenom("Fatima")
-                .email("fatima.alaoui@unievt.ma")
-                .motDePasse("etu123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Informatique")
-                .anneeEtude(2).cin("AB123456")
-                .build();
-
-        Etudiant saved = etudiantRepository.save(e);
-        assertNotNull(saved.getId());
-        assertEquals("Génie Informatique", saved.getFiliere());
-        System.out.println("✅ Etudiant saved: " + saved.getId());
+    void testEtudiantFields() {
+        assertEquals("Génie Informatique", etudiant1.getFiliere());
+        assertEquals(2, etudiant1.getAnneeEtude());
+        assertEquals("AB111111", etudiant1.getCin());
+        System.out.println(" Etudiant fields correct");
     }
 
     @Test
-    void testSaveMultipleEtudiants() {
-        Etudiant e1 = Etudiant.builder()
-                .nom("Ziani").prenom("Mehdi")
-                .email("mehdi.ziani@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Civil").anneeEtude(1).cin("CD111111")
-                .build();
-
-        Etudiant e2 = Etudiant.builder()
-                .nom("Tahiri").prenom("Amine")
-                .email("amine.tahiri@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Électrique").anneeEtude(3).cin("EF222222")
-                .build();
-
-        Etudiant e3 = Etudiant.builder()
-                .nom("Benhaddou").prenom("Salma")
-                .email("salma.benhaddou@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Informatique").anneeEtude(4).cin("GH333333")
-                .build();
-
-        etudiantRepository.saveAll(List.of(e1, e2, e3));
-        assertEquals(3, etudiantRepository.findAll().size());
-        System.out.println("✅ 3 etudiants saved");
-    }
-
-    @Test
-    void testFindEtudiantByCin() {
-        Etudiant e = Etudiant.builder()
-                .nom("Kettani").prenom("Rania")
-                .email("rania.kettani@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Informatique").anneeEtude(2).cin("ZZ999999")
-                .build();
-        etudiantRepository.save(e);
-
-        Optional<Etudiant> found = etudiantRepository.findByCin("ZZ999999");
+    void testFindByCin() {
+        Optional<Etudiant> found = etudiantRepository.findByCin("AB111111");
         assertTrue(found.isPresent());
-        assertEquals("Kettani", found.get().getNom());
-        System.out.println("✅ Found etudiant by CIN: " + found.get().getCin());
+        assertEquals("Alaoui", found.get().getNom());
+        System.out.println(" findByCin works");
     }
 
     @Test
     void testEtudiantIsAlsoUtilisateur() {
-        Etudiant e = Etudiant.builder()
-                .nom("Fassi").prenom("Karim")
-                .email("karim.fassi@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.ETUDIANT).actif(true)
-                .filiere("Génie Informatique").anneeEtude(1).cin("KF000001")
-                .build();
-        etudiantRepository.save(e);
-
-        // should also be findable as a Utilisateur
-        Optional<Utilisateur> found = utilisateurRepository.findByEmail("karim.fassi@unievt.ma");
+        Optional<Utilisateur> found = utilisateurRepository.findByEmail("fatima@unievt.ma");
         assertTrue(found.isPresent());
         assertInstanceOf(Etudiant.class, found.get());
-        System.out.println("✅ Etudiant is also a Utilisateur (inheritance works)");
+        System.out.println(" Etudiant is also Utilisateur — inheritance works");
+    }
+
+    @Test
+    void testMultipleEtudiants() {
+        assertEquals(2, etudiantRepository.findAll().size());
+        System.out.println(" Both etudiants saved");
     }
 
     // ─────────────────────────────────────────────
@@ -215,119 +198,47 @@ class UniEventBackendApplicationTests {
     // ─────────────────────────────────────────────
 
     @Test
-    void testSaveClub() {
-        Utilisateur president = Utilisateur.builder()
-                .nom("Hassoub").prenom("Strike")
-                .email("strike@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-        utilisateurRepository.save(president);
-
-        Club club = Club.builder()
-                .nom("Club IA")
-                .description("Club d'intelligence artificielle")
-                .categorie("Technologie").actif(true)
-                .president(president)
-                .build();
-
-        Club saved = clubRepository.save(club);
-        assertNotNull(saved.getId());
-        assertEquals("Club IA", saved.getNom());
-        System.out.println("✅ Club saved: " + saved.getId());
-    }
-
-    @Test
-    void testSaveMultipleClubs() {
-        Utilisateur p1 = Utilisateur.builder()
-                .nom("Amrani").prenom("Karim")
-                .email("karim.amrani@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-
-        Utilisateur p2 = Utilisateur.builder()
-                .nom("Berrada").prenom("Leila")
-                .email("leila.berrada@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-
-        utilisateurRepository.saveAll(List.of(p1, p2));
-
-        Club c1 = Club.builder().nom("Club Robotique")
-                .description("Robotique et automatisme")
-                .categorie("Technologie").actif(true).president(p1).build();
-
-        Club c2 = Club.builder().nom("Club Théâtre")
-                .description("Art dramatique")
-                .categorie("Culture").actif(true).president(p2).build();
-
-        Club c3 = Club.builder().nom("Club Sport")
-                .description("Activités sportives")
-                .categorie("Sport").actif(false).president(p1).build();
-
-        clubRepository.saveAll(List.of(c1, c2, c3));
-        assertEquals(3, clubRepository.findAll().size());
-        System.out.println("✅ 3 clubs saved");
-    }
-
-    @Test
-    void testFindActiveClubs() {
-        Utilisateur p = Utilisateur.builder()
-                .nom("Tahir").prenom("Nour")
-                .email("nour.tahir@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-        utilisateurRepository.save(p);
-
-        clubRepository.save(Club.builder().nom("Club Actif 1").categorie("Tech").actif(true).president(p).build());
-        clubRepository.save(Club.builder().nom("Club Actif 2").categorie("Sport").actif(true).president(p).build());
-        clubRepository.save(Club.builder().nom("Club Inactif").categorie("Culture").actif(false).president(p).build());
-
-        List<Club> activeClubs = clubRepository.findByActifTrue();
-        assertEquals(2, activeClubs.size());
-        System.out.println("✅ Found " + activeClubs.size() + " active clubs");
-    }
-
-    @Test
-    void testFindClubsByCategorie() {
-        Utilisateur p = Utilisateur.builder()
-                .nom("Lahlou").prenom("Rim")
-                .email("rim.lahlou@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-        utilisateurRepository.save(p);
-
-        clubRepository.save(Club.builder().nom("Club IA").categorie("Technologie").actif(true).president(p).build());
-        clubRepository.save(Club.builder().nom("Club Web").categorie("Technologie").actif(true).president(p).build());
-        clubRepository.save(Club.builder().nom("Club Foot").categorie("Sport").actif(true).president(p).build());
-
-        List<Club> techClubs = clubRepository.findByCategorie("Technologie");
-        assertEquals(2, techClubs.size());
-        System.out.println("✅ Found " + techClubs.size() + " tech clubs");
+    void testClubSaved() {
+        assertNotNull(club.getId());
+        assertEquals("Club IA", club.getNom());
+        System.out.println(" Club saved: " + club.getId());
     }
 
     @Test
     void testClubPresidentRelationship() {
-        Utilisateur president = Utilisateur.builder()
-                .nom("Chraibi").prenom("Adam")
-                .email("adam.chraibi@unievt.ma")
-                .motDePasse("pass123")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true)
-                .build();
-        utilisateurRepository.save(president);
+        assertNotNull(club.getPresident());
+        assertEquals("Hassoub", club.getPresident().getNom());
+        System.out.println(" Club president relationship works");
+    }
 
-        Club club = Club.builder()
-                .nom("Club Dev").categorie("Tech").actif(true)
-                .president(president).build();
-        Club saved = clubRepository.save(club);
+    @Test
+    void testFindActiveClubs() {
+        clubRepository.save(Club.builder().nom("Club Inactif")
+                .categorie("Sport").actif(false).president(president).build());
+        List<Club> active = clubRepository.findByActifTrue();
+        assertEquals(1, active.size());
+        System.out.println(" findByActifTrue works, found: " + active.size());
+    }
 
-        assertNotNull(saved.getPresident());
-        assertEquals("Chraibi", saved.getPresident().getNom());
-        System.out.println("✅ Club president relationship works: " + saved.getPresident().getEmail());
+    @Test
+    void testFindClubsByCategorie() {
+        clubRepository.save(Club.builder().nom("Club Web")
+                .categorie("Technologie").actif(true).president(president).build());
+        clubRepository.save(Club.builder().nom("Club Foot")
+                .categorie("Sport").actif(true).president(president).build());
+
+        List<Club> techClubs = clubRepository.findByCategorie("Technologie");
+        assertEquals(2, techClubs.size());
+        System.out.println(" findByCategorie works, found: " + techClubs.size());
+    }
+
+    @Test
+    void testMultipleClubsSamePresident() {
+        clubRepository.save(Club.builder().nom("Club Robotique")
+                .categorie("Technologie").actif(true).president(president).build());
+        List<Club> all = clubRepository.findAll();
+        assertEquals(2, all.size());
+        System.out.println(" President can manage multiple clubs");
     }
 
     // ─────────────────────────────────────────────
@@ -335,56 +246,294 @@ class UniEventBackendApplicationTests {
     // ─────────────────────────────────────────────
 
     @Test
-    void testSaveIntervenant() {
-        Intervenant i = Intervenant.builder()
-                .nom("Bensouda")
-                .institution("MIT").biographie("Expert en IA et ML")
-                .build();
-
-        Intervenant saved = intervenantRepository.save(i);
-        assertNotNull(saved.getId());
-        assertEquals("MIT", saved.getInstitution());
-        System.out.println("✅ Intervenant saved: " + saved.getId());
+    void testIntervenantSaved() {
+        assertNotNull(intervenant1.getId());
+        assertEquals("MIT", intervenant1.getInstitution());
+        System.out.println(" Intervenant saved: " + intervenant1.getId());
     }
 
     @Test
-    void testSaveMultipleIntervenants() {
-        Intervenant i1 = Intervenant.builder().nom("Dupont")
-                .institution("École Polytechnique").biographie("Spécialiste en cybersécurité").build();
-        Intervenant i2 = Intervenant.builder().nom("Garcia")
-                .institution("Stanford").biographie("Chercheur en NLP").build();
-        Intervenant i3 = Intervenant.builder().nom("Smith")
-                .institution("Oxford").biographie("Expert en blockchain").build();
-
-        intervenantRepository.saveAll(List.of(i1, i2, i3));
-        assertEquals(3, intervenantRepository.findAll().size());
-        System.out.println("✅ 3 intervenants saved");
-    }
-
-    @Test
-    void testDeleteIntervenant() {
-        Intervenant i = Intervenant.builder()
-                .nom("Temporary").institution("FST").biographie("To be deleted").build();
-        Intervenant saved = intervenantRepository.save(i);
-        Long id = saved.getId();
-
-        intervenantRepository.deleteById(id);
-        assertFalse(intervenantRepository.existsById(id));
-        System.out.println("✅ Intervenant deleted successfully");
+    void testMultipleIntervenants() {
+        assertEquals(2, intervenantRepository.findAll().size());
+        System.out.println(" Both intervenants saved");
     }
 
     @Test
     void testUpdateIntervenant() {
-        Intervenant i = Intervenant.builder()
-                .nom("OldName").institution("OldInstitution").biographie("Old bio").build();
-        Intervenant saved = intervenantRepository.save(i);
+        intervenant1.setNom("Dupont Updated");
+        intervenant1.setInstitution("Harvard");
+        Intervenant updated = intervenantRepository.save(intervenant1);
+        assertEquals("Harvard", updated.getInstitution());
+        System.out.println(" Intervenant updated successfully");
+    }
 
-        saved.setNom("NewName");
-        saved.setInstitution("NewInstitution");
-        Intervenant updated = intervenantRepository.save(saved);
+    @Test
+    void testDeleteIntervenant() {
+        Long id = intervenant2.getId();
+        intervenantRepository.deleteById(id);
+        assertFalse(intervenantRepository.existsById(id));
+        System.out.println(" Intervenant deleted successfully");
+    }
 
-        assertEquals("NewName", updated.getNom());
-        assertEquals("NewInstitution", updated.getInstitution());
-        System.out.println("✅ Intervenant updated successfully");
+    // ─────────────────────────────────────────────
+    //  EVENEMENT
+    // ─────────────────────────────────────────────
+
+    @Test
+    void testEvenementSaved() {
+        assertNotNull(evenement.getId());
+        assertEquals("Conférence IA 2025", evenement.getTitre());
+        assertEquals(StatutEvenementEnum.APPROUVE, evenement.getStatut());
+        System.out.println(" Evenement saved: " + evenement.getId());
+    }
+
+    @Test
+    void testEvenementClubRelationship() {
+        assertNotNull(evenement.getClub());
+        assertEquals("Club IA", evenement.getClub().getNom());
+        System.out.println(" Evenement club relationship works");
+    }
+
+    @Test
+    void testEvenementOrganisateurRelationship() {
+        assertNotNull(evenement.getOrganisateur());
+        assertEquals("Hassoub", evenement.getOrganisateur().getNom());
+        System.out.println(" Evenement organisateur relationship works");
+    }
+
+    @Test
+    void testFindEvenementByStatut() {
+        evenementRepository.save(Evenement.builder()
+                .titre("Atelier Python").categorie(CategorieEnum.ATELIER)
+                .dateDebut(LocalDateTime.now().plusDays(14))
+                .dateFin(LocalDateTime.now().plusDays(14).plusHours(2))
+                .capacite(30).statut(StatutEvenementEnum.SOUMIS)
+                .visibilite(VisibiliteEnum.UNIVERSITE)
+                .type(TypeEvenementEnum.INSTITUTIONNEL)
+                .organisateur(responsable).build());
+
+        List<Evenement> approuves = evenementRepository.findByStatut(StatutEvenementEnum.APPROUVE);
+        List<Evenement> soumis = evenementRepository.findByStatut(StatutEvenementEnum.SOUMIS);
+        assertEquals(1, approuves.size());
+        assertEquals(1, soumis.size());
+        System.out.println(" findByStatut works");
+    }
+
+    @Test
+    void testFindEvenementByClub() {
+        List<Evenement> events = evenementRepository.findByClubId(club.getId());
+        assertEquals(1, events.size());
+        System.out.println(" findByClubId works");
+    }
+
+    @Test
+    void testFindEvenementByOrganisateur() {
+        List<Evenement> events = evenementRepository.findByOrganisateurId(president.getId());
+        assertEquals(1, events.size());
+        System.out.println(" findByOrganisateurId works");
+    }
+
+    @Test
+    void testFindEvenementByCategorie() {
+        List<Evenement> conferences = evenementRepository.findByCategorie(CategorieEnum.CONFERENCE);
+        assertEquals(1, conferences.size());
+        System.out.println(" findByCategorie works");
+    }
+
+    @Test
+    void testMultipleEvenements() {
+        evenementRepository.save(Evenement.builder()
+                .titre("Hackathon 2025").categorie(CategorieEnum.COMPETITION)
+                .dateDebut(LocalDateTime.now().plusDays(30))
+                .dateFin(LocalDateTime.now().plusDays(31))
+                .capacite(50).statut(StatutEvenementEnum.APPROUVE)
+                .visibilite(VisibiliteEnum.PUBLIC)
+                .type(TypeEvenementEnum.INSTITUTIONNEL)
+                .club(club).organisateur(responsable).build());
+
+        assertEquals(2, evenementRepository.findAll().size());
+        System.out.println(" Multiple evenements saved");
+    }
+
+    // ─────────────────────────────────────────────
+    //  INSCRIPTION
+    // ─────────────────────────────────────────────
+
+    @Test
+    void testInscriptionSaved() {
+        Inscription i = inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        assertNotNull(i.getId());
+        assertEquals(StatutInscriptionEnum.CONFIRMEE, i.getStatut());
+        System.out.println(" Inscription saved: " + i.getId());
+    }
+
+    @Test
+    void testMultipleInscriptions() {
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.LISTE_ATTENTE)
+                .qrCode("QR-002").present(false)
+                .etudiant(etudiant2).evenement(evenement).build());
+
+        assertEquals(2, inscriptionRepository.findAll().size());
+        System.out.println(" Multiple inscriptions saved");
+    }
+
+    @Test
+    void testFindInscriptionsByEvenement() {
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-002").present(true)
+                .etudiant(etudiant2).evenement(evenement).build());
+
+        List<Inscription> found = inscriptionRepository.findByEvenementId(evenement.getId());
+        assertEquals(2, found.size());
+        System.out.println(" findByEvenementId works");
+    }
+
+    @Test
+    void testFindInscriptionsByEtudiant() {
+        Evenement evt2 = evenementRepository.save(Evenement.builder()
+                .titre("Atelier Design").categorie(CategorieEnum.ATELIER)
+                .dateDebut(LocalDateTime.now().plusDays(10))
+                .dateFin(LocalDateTime.now().plusDays(10).plusHours(2))
+                .capacite(20).statut(StatutEvenementEnum.APPROUVE)
+                .visibilite(VisibiliteEnum.UNIVERSITE)
+                .type(TypeEvenementEnum.CLUB)
+                .club(club).organisateur(president).build());
+
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-002").present(false)
+                .etudiant(etudiant1).evenement(evt2).build());
+
+        List<Inscription> found = inscriptionRepository.findByEtudiantId(etudiant1.getId());
+        assertEquals(2, found.size());
+        System.out.println(" findByEtudiantId works — etudiant inscribed in 2 events");
+    }
+
+    @Test
+    void testFindInscriptionsByEvenementAndStatut() {
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.LISTE_ATTENTE)
+                .qrCode("QR-002").present(false)
+                .etudiant(etudiant2).evenement(evenement).build());
+
+        List<Inscription> confirmes = inscriptionRepository
+                .findByEvenementIdAndStatut(evenement.getId(), StatutInscriptionEnum.CONFIRMEE);
+        assertEquals(1, confirmes.size());
+        System.out.println(" findByEvenementIdAndStatut works");
+    }
+
+    @Test
+    void testInscriptionPresenceUpdate() {
+        Inscription i = inscriptionRepository.save(Inscription.builder()
+                .dateInscription(LocalDateTime.now())
+                .statut(StatutInscriptionEnum.CONFIRMEE)
+                .qrCode("QR-001").present(false)
+                .etudiant(etudiant1).evenement(evenement).build());
+
+        i.setPresent(true);
+        Inscription updated = inscriptionRepository.save(i);
+        assertTrue(updated.getPresent());
+        System.out.println(" Inscription presence updated successfully");
+    }
+
+    // ─────────────────────────────────────────────
+    //  EVENEMENT INTERVENANT
+    // ─────────────────────────────────────────────
+
+    @Test
+    void testEvenementIntervenantSaved() {
+        EvenementIntervenantId id = new EvenementIntervenantId(evenement.getId(), intervenant1.getId());
+        EvenementIntervenant ei = evenementIntervenantRepository.save(
+                new EvenementIntervenant(id, evenement, intervenant1));
+
+        assertNotNull(ei.getId());
+        assertEquals(evenement.getId(), ei.getId().getEvenementId());
+        System.out.println(" EvenementIntervenant saved with composite PK");
+    }
+
+    @Test
+    void testMultipleIntervenantsForEvenement() {
+        evenementIntervenantRepository.save(new EvenementIntervenant(
+                new EvenementIntervenantId(evenement.getId(), intervenant1.getId()),
+                evenement, intervenant1));
+
+        evenementIntervenantRepository.save(new EvenementIntervenant(
+                new EvenementIntervenantId(evenement.getId(), intervenant2.getId()),
+                evenement, intervenant2));
+
+        List<EvenementIntervenant> found = evenementIntervenantRepository
+                .findByEvenementId(evenement.getId());
+        assertEquals(2, found.size());
+        System.out.println(" Multiple intervenants linked to same evenement");
+    }
+
+    @Test
+    void testFindByIntervenantId() {
+        Evenement evt2 = evenementRepository.save(Evenement.builder()
+                .titre("Séminaire ML").categorie(CategorieEnum.CONFERENCE)
+                .dateDebut(LocalDateTime.now().plusDays(20))
+                .dateFin(LocalDateTime.now().plusDays(20).plusHours(2))
+                .capacite(80).statut(StatutEvenementEnum.APPROUVE)
+                .visibilite(VisibiliteEnum.PUBLIC)
+                .type(TypeEvenementEnum.INSTITUTIONNEL)
+                .organisateur(responsable).build());
+
+        evenementIntervenantRepository.save(new EvenementIntervenant(
+                new EvenementIntervenantId(evenement.getId(), intervenant1.getId()),
+                evenement, intervenant1));
+
+        evenementIntervenantRepository.save(new EvenementIntervenant(
+                new EvenementIntervenantId(evt2.getId(), intervenant1.getId()),
+                evt2, intervenant1));
+
+        List<EvenementIntervenant> found = evenementIntervenantRepository
+                .findByIntervenantId(intervenant1.getId());
+        assertEquals(2, found.size());
+        System.out.println(" findByIntervenantId works — intervenant in 2 events");
+    }
+
+    @Test
+    void testDeleteEvenementIntervenant() {
+        EvenementIntervenantId id = new EvenementIntervenantId(evenement.getId(), intervenant1.getId());
+        evenementIntervenantRepository.save(new EvenementIntervenant(id, evenement, intervenant1));
+
+        evenementIntervenantRepository.deleteById(id);
+        assertFalse(evenementIntervenantRepository.existsById(id));
+        System.out.println(" EvenementIntervenant deleted by composite PK");
     }
 }
