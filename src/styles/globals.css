@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   UNIEVENT DESIGN TOKENS — Premium 2026
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* ── Core surface ── */
+    --background: 220 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* ── Brand: Deep Indigo → Electric Blue ── */
+    --primary: 232 84% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 20%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 232 84% 96%;
+    --accent-foreground: 232 84% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 232 84% 55%;
+
+    /* ── Brand palette ── */
+    --brand-50:  232 100% 98%;
+    --brand-100: 232 100% 95%;
+    --brand-200: 232 96%  89%;
+    --brand-300: 232 90%  78%;
+    --brand-400: 232 87%  65%;
+    --brand-500: 232 84%  55%;
+    --brand-600: 232 80%  46%;
+    --brand-700: 232 76%  38%;
+    --brand-800: 232 70%  30%;
+    --brand-900: 232 65%  23%;
+
+    /* ── Gold accent ── */
+    --gold: 43 96% 56%;
+    --gold-foreground: 43 96% 15%;
+
+    /* ── Sidebar ── */
+    --sidebar-background: 228 45% 12%;
+    --sidebar-foreground: 220 20% 88%;
+    --sidebar-border: 228 30% 18%;
+    --sidebar-accent: 232 50% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 232 84% 55%;
+
+    /* ── Radius ── */
+    --radius: 0.75rem;
+
+    /* ── Status colors ── */
+    --status-draft: 220 9% 60%;
+    --status-submitted: 43 96% 56%;
+    --status-verified: 199 89% 48%;
+    --status-pending: 258 90% 66%;
+    --status-approved: 142 71% 45%;
+    --status-rejected: 0 84% 60%;
+    --status-cancelled: 220 9% 46%;
+    --status-done: 220 13% 69%;
+  }
+
+  .dark {
+    --background: 226 35% 8%;
+    --foreground: 213 31% 91%;
+
+    --card: 228 35% 11%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 228 35% 11%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 232 84% 65%;
+    --primary-foreground: 232 84% 10%;
+
+    --secondary: 228 30% 18%;
+    --secondary-foreground: 213 31% 85%;
+
+    --muted: 228 25% 16%;
+    --muted-foreground: 220 9% 55%;
+
+    --accent: 232 50% 20%;
+    --accent-foreground: 232 84% 75%;
+
+    --destructive: 0 74% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 25% 18%;
+    --input: 228 25% 18%;
+    --ring: 232 84% 65%;
+
+    /* Brand dark */
+    --brand-50:  232 40% 14%;
+    --brand-100: 232 45% 18%;
+    --brand-200: 232 55% 26%;
+    --brand-300: 232 65% 38%;
+    --brand-400: 232 75% 52%;
+    --brand-500: 232 84% 65%;
+    --brand-600: 232 84% 72%;
+    --brand-700: 232 84% 80%;
+    --brand-800: 232 84% 88%;
+    --brand-900: 232 84% 95%;
+
+    --gold: 43 96% 60%;
+    --gold-foreground: 43 96% 10%;
+
+    --sidebar-background: 228 40% 7%;
+    --sidebar-foreground: 220 20% 80%;
+    --sidebar-border: 228 30% 13%;
+    --sidebar-accent: 232 50% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 232 84% 65%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Scrollbar — webkit */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+
+  /* Selection */
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+@layer utilities {
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--brand-500)),
+      hsl(var(--brand-300))
+    );
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--gold)),
+      hsl(43 96% 72%)
+    );
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10;
+  }
+
+  .glass-dark {
+    @apply bg-black/30 backdrop-blur-xl border border-white/10;
+  }
+
+  /* Status badges */
+  .status-draft     { @apply bg-[hsl(var(--status-draft)/0.12)]     text-[hsl(var(--status-draft))]; }
+  .status-submitted { @apply bg-[hsl(var(--status-submitted)/0.12)] text-[hsl(var(--status-submitted))]; }
+  .status-verified  { @apply bg-[hsl(var(--status-verified)/0.12)]  text-[hsl(var(--status-verified))]; }
+  .status-pending   { @apply bg-[hsl(var(--status-pending)/0.12)]   text-[hsl(var(--status-pending))]; }
+  .status-approved  { @apply bg-[hsl(var(--status-approved)/0.12)]  text-[hsl(var(--status-approved))]; }
+  .status-rejected  { @apply bg-[hsl(var(--status-rejected)/0.12)]  text-[hsl(var(--status-rejected))]; }
+  .status-cancelled { @apply bg-[hsl(var(--status-cancelled)/0.12)] text-[hsl(var(--status-cancelled))]; }
+  .status-done      { @apply bg-[hsl(var(--status-done)/0.12)]      text-[hsl(var(--status-done))]; }
+
+  /* Shimmer skeleton */
+  .skeleton {
+    @apply relative overflow-hidden bg-muted;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 25%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      transparent 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+
+  /* Focus visible ring */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+}
+
+/* ============================================================
+   ADMIN DESIGN TOKENS (Phase 4A)
+   ============================================================ */
+@layer base {
+  :root {
+    --admin-bg:              226 35% 7%;
+    --admin-sidebar:         226 40% 9%;
+    --admin-navbar:          226 38% 8%;
+    --admin-card:            226 32% 11%;
+    --admin-accent:          232 84% 58%;
+    --admin-sidebar-foreground: 220 20% 82%;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
