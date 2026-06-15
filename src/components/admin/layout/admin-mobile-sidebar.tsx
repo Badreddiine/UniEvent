@@ -54,15 +54,20 @@ function MobileNavLink({ item, onClose }: { item: NavItem; onClose: () => void }
 }
 
 export function AdminMobileSidebar() {
-  const { sidebarMobileOpen: mobileSidebarOpen, closeMobileSidebar: setMobileSidebarOpenFalse, toggleMobileSidebar } = useUIStore();
-  const setMobileSidebarOpen = (v: boolean) => { if (!v) setMobileSidebarOpenFalse(); else toggleMobileSidebar(); };
+  // Sélecteurs : les actions zustand ont une référence STABLE
+  // (évite les re-renders sur tout le store + la boucle infinie #185).
+  const mobileSidebarOpen = useUIStore((s) => s.sidebarMobileOpen);
+  const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
+  const toggleMobileSidebar = useUIStore((s) => s.toggleMobileSidebar);
+  const setMobileSidebarOpen = (v: boolean) => { if (!v) closeMobileSidebar(); else toggleMobileSidebar(); };
   const { user } = useAuthStore();
   const pathname = usePathname();
 
-  // Close on route change
+  // Fermer au changement de route — dépend uniquement de `pathname`
+  // (closeMobileSidebar est une action stable, pas recréée à chaque render).
   useEffect(() => {
-    setMobileSidebarOpen(false);
-  }, [pathname, setMobileSidebarOpen]);
+    closeMobileSidebar();
+  }, [pathname, closeMobileSidebar]);
 
   // Lock body scroll
   useEffect(() => {
