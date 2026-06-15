@@ -41,6 +41,12 @@ export const NAV_ITEMS: NavItem[] = [
         icon: "FolderOpen",
         roles: ["president_club", "responsable_evenements"],
       },
+      {
+        label: "Vérification événements",
+        href: "/dashboard/events/verify",
+        icon: "CheckSquare",
+        roles: ["responsable_evenements", "doyen"],
+      },
     ],
   },
   // ─ Reservations

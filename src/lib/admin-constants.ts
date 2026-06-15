@@ -30,9 +30,21 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     roles: ["admin"],
   },
   {
+    label: "Clubs",
+    href: "/admin/clubs",
+    icon: "BookOpen",
+    roles: ["admin"],
+  },
+  {
     label: "Salles",
     href: "/admin/rooms",
     icon: "Building2",
+    roles: ["admin"],
+  },
+  {
+    label: "Analytique",
+    href: "/admin/analytics",
+    icon: "BarChart3",
     roles: ["admin"],
   },
   {

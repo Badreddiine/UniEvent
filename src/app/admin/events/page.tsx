@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton } from "@/components/shared/back-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, Calendar, Users, Search, Eye, Edit, Send } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar, Users, Search, Eye, Edit, Send, ShieldCheck } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { eventService } from "@/services/event.service";
 import type { StatutEvenementEnum } from "@/types/api";
@@ -41,10 +41,23 @@ export default function AdminEventsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
   });
 
-  // Approuver / Publier : le backend n'a qu'un endpoint /publish (VERIFIE → APPROUVE),
-  // il n'existe pas de /status générique ni de statut "PUBLIE".
+  // /publish gère deux transitions selon le rôle de l'appelant :
+  //   organisateur : BROUILLON → SOUMIS ("Soumettre")
+  //   admin        : VERIFIE  → APPROUVE ("Approuver")
   const publishMutation = useMutation({
     mutationFn: (id: number) => eventService.publish(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
+  });
+
+  // SOUMIS → VERIFIE via PATCH /evenements/{id}/verifier ("Vérifier")
+  const verifyMutation = useMutation({
+    mutationFn: (id: number) => eventService.verify(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
+  });
+
+  // VERIFIE → APPROUVE via PATCH /evenements/{id}/approuver ("Approuver")
+  const approveMutation = useMutation({
+    mutationFn: (id: number) => eventService.approve(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
   });
 
@@ -131,24 +144,35 @@ export default function AdminEventsPage() {
                         <Edit size={14} />
                       </Link>
 
-                      {/* Approuver / Publier (= /publish → APPROUVE), tant que non approuvé/terminal */}
-                      {ev.statut !== "APPROUVE" && ev.statut !== "ANNULE" && ev.statut !== "TERMINE" && ev.statut !== "REJETE" && (
-                        <>
-                          <button
-                            onClick={() => publishMutation.mutate(ev.id)}
-                            disabled={publishMutation.isPending}
-                            title="Approuver"
-                            className="p-1.5 rounded-lg hover:bg-green-50 text-muted-foreground hover:text-green-600 transition-colors dark:hover:bg-green-900/20 disabled:opacity-50">
-                            <CheckCircle2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => publishMutation.mutate(ev.id)}
-                            disabled={publishMutation.isPending}
-                            title="Publier"
-                            className="p-1.5 rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors dark:hover:bg-blue-900/20 disabled:opacity-50">
-                            <Send size={14} />
-                          </button>
-                        </>
+                      {/* Action de transition selon le statut courant */}
+                      {ev.statut === "BROUILLON" && (
+                        <button
+                          onClick={() => publishMutation.mutate(ev.id)}
+                          disabled={publishMutation.isPending}
+                          title="Soumettre"
+                          className="p-1.5 rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors dark:hover:bg-blue-900/20 disabled:opacity-50">
+                          <Send size={14} />
+                        </button>
+                      )}
+
+                      {ev.statut === "SOUMIS" && (
+                        <button
+                          onClick={() => verifyMutation.mutate(ev.id)}
+                          disabled={verifyMutation.isPending}
+                          title="Vérifier"
+                          className="p-1.5 rounded-lg hover:bg-amber-50 text-muted-foreground hover:text-amber-600 transition-colors dark:hover:bg-amber-900/20 disabled:opacity-50">
+                          <ShieldCheck size={14} />
+                        </button>
+                      )}
+
+                      {(ev.statut === "VERIFIE" || ev.statut === "RESERVATION_EN_ATTENTE") && (
+                        <button
+                          onClick={() => approveMutation.mutate(ev.id)}
+                          disabled={approveMutation.isPending}
+                          title="Approuver"
+                          className="p-1.5 rounded-lg hover:bg-green-50 text-muted-foreground hover:text-green-600 transition-colors dark:hover:bg-green-900/20 disabled:opacity-50">
+                          <CheckCircle2 size={14} />
+                        </button>
                       )}
 
                       {/* Voir */}

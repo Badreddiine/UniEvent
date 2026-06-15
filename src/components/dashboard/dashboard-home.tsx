@@ -242,7 +242,7 @@ function EtudiantDashboard() {
   });
   const { data: eventsPage } = useQuery({
     queryKey: ["events-recommended"],
-    queryFn: () => eventService.list({ size: 50 }),
+    queryFn: () => eventService.list({ statut: "APPROUVE", size: 50 }),
   });
   const now = Date.now();
   const myRegs = regs ?? [];

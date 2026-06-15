@@ -44,6 +44,17 @@ export const eventService = {
     return apiClient.patch<EventDTO>(`/api/events/${id}/publish`).then((r) => r.data);
   },
 
+  // SOUMIS → VERIFIE : géré uniquement par EvenementController (/evenements),
+  // il n'existe pas d'équivalent sur /api/events.
+  verify(id: number) {
+    return apiClient.patch(`/evenements/${id}/verifier`).then((r) => r.data);
+  },
+
+  // VERIFIE → APPROUVE via EvenementController (/evenements).
+  approve(id: number) {
+    return apiClient.patch(`/evenements/${id}/approuver`).then((r) => r.data);
+  },
+
   cancel(id: number) {
     return apiClient.patch<EventDTO>(`/api/events/${id}/cancel`).then((r) => r.data);
   },
