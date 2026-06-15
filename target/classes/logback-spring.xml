@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- ── Dev / Test: coloured console ──────────────────────────────────────── -->
+  <springProfile name="dev,test">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{traceId}] - %msg%n</pattern>
+      </encoder>
+    </appender>
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+    <logger name="com.unievt" level="DEBUG"/>
+    <logger name="org.springframework.security" level="DEBUG"/>
+  </springProfile>
+
+  <!-- ── Prod: JSON → stdout → Betterstack Logtail ─────────────────────────── -->
+  <springProfile name="prod">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <customFields>{"service":"unievent-backend","env":"prod"}</customFields>
+        <includeMdcKeyName>traceId</includeMdcKeyName>
+        <includeMdcKeyName>userId</includeMdcKeyName>
+      </encoder>
+    </appender>
+    <root level="WARN">
+      <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+    <logger name="com.unievt" level="INFO"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+  </springProfile>
+
+  <!-- ── Staging: same as prod but INFO level ───────────────────────────────── -->
+  <springProfile name="staging">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <customFields>{"service":"unievent-backend","env":"staging"}</customFields>
+        <includeMdcKeyName>traceId</includeMdcKeyName>
+        <includeMdcKeyName>userId</includeMdcKeyName>
+      </encoder>
+    </appender>
+    <root level="INFO">
+      <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+    <logger name="com.unievt" level="DEBUG"/>
+  </springProfile>
+
+</configuration>

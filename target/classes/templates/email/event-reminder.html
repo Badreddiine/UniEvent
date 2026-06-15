@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head><meta charset="UTF-8"><title>Rappel d'événement</title></head>
+<body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px">
+  <div style="max-width:600px;margin:auto;background:#fff;border-radius:8px;overflow:hidden">
+    <div style="background:#0ea5e9;padding:24px;color:#fff">
+      <h1 style="margin:0;font-size:22px">Rappel — dans 24 heures 🕐</h1>
+    </div>
+    <div style="padding:24px">
+      <p>Bonjour <strong th:text="${userName}">Étudiant</strong>,</p>
+      <p>L'événement <strong th:text="${eventName}">événement</strong> commence
+         <strong>dans 24 heures</strong>.</p>
+      <p th:if="${eventDate}">Date : <span th:text="${eventDate}"></span></p>
+      <p>Pensez à vous préparer. À demain !</p>
+      <p style="color:#888;font-size:12px;margin-top:32px">UniEvent — Gestion d'événements universitaires</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -16,5 +16,7 @@ package com.unievt.enums;
 public enum RoleEnum {
     ADMIN,
     DOYEN,
-    RESPONSABLE_EVENEMENTS
+    RESPONSABLE_EVENEMENTS,
+    ETUDIANT,
+    PRESIDENT_CLUB
 }

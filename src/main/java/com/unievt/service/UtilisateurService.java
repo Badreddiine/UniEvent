@@ -41,6 +41,10 @@ public class UtilisateurService {
         if (entity.getActif() == null) {
             entity.setActif(true);
         }
+        // Rôle par défaut à la création (inscription publique) : ETUDIANT
+        if (entity.getRole() == null) {
+            entity.setRole(RoleEnum.ETUDIANT);
+        }
         Utilisateur saved = utilisateurRepository.save(entity);
         return utilisateurMapper.toResponseDTO(saved);
     }
