@@ -48,7 +48,7 @@ export default function AdminEventsPage() {
   return (
     <div className="space-y-6">
       <BackButton />
-      <PageHeader title="Gestion des événements" description={`${data?.totalElements ?? 0} événement(s) au total.`} />
+      <PageHeader title="Gestion des événements" description={`${data?.page?.totalElements ?? 0} événement(s) au total.`} />
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">

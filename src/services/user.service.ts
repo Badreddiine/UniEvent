@@ -5,6 +5,7 @@ import type {
   UtilisateurCreateDTO,
   UtilisateurResponseDTO,
   RoleUpdateDTO,
+  PageResponse,
 } from '@/types/api';
 
 export const userService = {
@@ -17,7 +18,9 @@ export const userService = {
   },
 
   list() {
-    return apiClient.get<UtilisateurResponseDTO[]>('/api/users').then((r) => r.data);
+    return apiClient
+      .get<PageResponse<UtilisateurResponseDTO>>('/api/users', { params: { size: 1000 } })
+      .then((r) => r.data.content);
   },
 
   create(data: UtilisateurCreateDTO) {

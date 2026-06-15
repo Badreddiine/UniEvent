@@ -25,9 +25,10 @@ function mapRole(
     case "ADMIN": return "admin";
     case "DOYEN": return "doyen";
     case "RESPONSABLE_EVENEMENTS": return "responsable_evenements";
-    // No permission role: identity facts decide the view.
-    // A club president (Club.president FK) gets the president_club view,
-    // otherwise it's a regular student.
+    case "PRESIDENT_CLUB": return "president_club";
+    // ETUDIANT (ou rôle absent/null) : un président de club (FK Club.president)
+    // obtient la vue president_club, sinon vue étudiant.
+    case "ETUDIANT":
     default: return presidentDeClub ? "president_club" : "etudiant";
   }
 }

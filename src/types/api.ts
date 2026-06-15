@@ -36,7 +36,7 @@ export type TypeSalleEnum =
 
 export type VisibiliteEnum = 'INTERNE_CLUB' | 'UNIVERSITE' | 'PUBLIC';
 
-export type RoleEnum = 'ADMIN' | 'DOYEN' | 'RESPONSABLE_EVENEMENTS';
+export type RoleEnum = 'ADMIN' | 'DOYEN' | 'RESPONSABLE_EVENEMENTS' | 'ETUDIANT' | 'PRESIDENT_CLUB';
 
 export type TypeNotifEnum = 'EMAIL' | 'PUSH' | 'SMS';
 
@@ -375,15 +375,16 @@ export interface EventAnalyticsDto {
 
 // ─── Pagination ──────────────────────────────────────────────────────────────
 
+// Forme produite par Spring avec @EnableSpringDataWebSupport(VIA_DTO) :
+// { content: [...], page: { size, number, totalElements, totalPages } }
 export interface PageResponse<T> {
   content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
 }
 
 export interface PageParams {

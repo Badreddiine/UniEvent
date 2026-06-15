@@ -4,11 +4,14 @@ import type {
   CreatePartnerRequest,
   EventSponsorDto,
   CreateSponsorRequest,
+  PageResponse,
 } from '@/types/api';
 
 export const partnerService = {
   list() {
-    return apiClient.get<PartnerDto[]>('/api/partners').then((r) => r.data);
+    return apiClient
+      .get<PageResponse<PartnerDto>>('/api/partners', { params: { size: 1000 } })
+      .then((r) => r.data.content);
   },
 
   get(id: string) {

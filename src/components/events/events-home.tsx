@@ -112,8 +112,8 @@ export function EventsHome() {
     );
   }, [data, filters.search]);
 
-  const totalPages = data?.totalPages ?? 1;
-  const totalElements = data?.totalElements ?? 0;
+  const totalPages = data?.page?.totalPages ?? 1;
+  const totalElements = data?.page?.totalElements ?? 0;
   const filtersActive = (filters.categorie !== "all" ? 1 : 0) + (filters.dateRange !== "all" ? 1 : 0);
 
   return (
