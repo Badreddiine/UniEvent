@@ -1,15 +1,19 @@
 package com.unievt.service;
 
+import com.unievt.dto.UpdateMeDTO;
+import com.unievt.dto.UserDTO;
 import com.unievt.dto.UtilisateurCreateDTO;
 import com.unievt.dto.UtilisateurResponseDTO;
 import com.unievt.dto.UtilisateurUpdateDTO;
 import com.unievt.entity.Utilisateur;
 import com.unievt.enums.RoleEnum;
 import com.unievt.mapper.UtilisateurMapper;
+import com.unievt.repository.ClubRepository;
 import com.unievt.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +28,8 @@ public class UtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final UtilisateurMapper utilisateurMapper;
-
-    // local encoder so we don't collide with whoever wires SecurityConfig
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
+    private final ClubRepository clubRepository;
 
     public UtilisateurResponseDTO creer(UtilisateurCreateDTO dto) {
         if (utilisateurRepository.existsByEmail(dto.getEmail())) {
@@ -50,6 +53,12 @@ public class UtilisateurService {
     }
 
     @Transactional(readOnly = true)
+    public Page<UserDTO> listerPage(Pageable pageable) {
+        return utilisateurRepository.findAll(pageable)
+                .map(utilisateurMapper::toUserDTO);
+    }
+
+    @Transactional(readOnly = true)
     public UtilisateurResponseDTO lire(Long id) {
         return utilisateurMapper.toResponseDTO(getOrThrow(id));
     }
@@ -58,6 +67,19 @@ public class UtilisateurService {
         Utilisateur entity = getOrThrow(id);
         utilisateurMapper.updateEntityFromDTO(dto, entity);
         return utilisateurMapper.toResponseDTO(utilisateurRepository.save(entity));
+    }
+
+    public UserDTO modifierMe(Long id, UpdateMeDTO dto) {
+        Utilisateur entity = getOrThrow(id);
+        utilisateurMapper.updateEntityFromUpdateMeDTO(dto, entity);
+        return utilisateurMapper.toUserDTO(utilisateurRepository.save(entity));
+    }
+
+    @Transactional(readOnly = true)
+    public UserDTO lireAsUserDTO(Long id) {
+        UserDTO dto = utilisateurMapper.toUserDTO(getOrThrow(id));
+        dto.setPresidentDeClub(clubRepository.existsByPresidentId(id));
+        return dto;
     }
 
     public UtilisateurResponseDTO activer(Long id) {

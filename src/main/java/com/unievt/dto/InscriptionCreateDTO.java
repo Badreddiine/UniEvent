@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 import com.unievt.enums.StatutInscriptionEnum;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class InscriptionCreateDTO {
     private LocalDateTime dateInscription;
     private StatutInscriptionEnum statut;

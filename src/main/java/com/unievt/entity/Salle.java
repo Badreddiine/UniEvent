@@ -4,6 +4,7 @@ import com.unievt.enums.StatutSalleEnum;
 import com.unievt.enums.TypeSalleEnum;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -13,8 +14,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Salle {
+@SuperBuilder
+public class Salle extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

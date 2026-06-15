@@ -11,4 +11,6 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     List<Club> findByActifTrue();
     List<Club> findByCategorie(String categorie);
+
+    boolean existsByPresidentId(Long presidentId);
 }

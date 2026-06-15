@@ -1,0 +1,182 @@
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: unievt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-unievtdb}
+      POSTGRES_USER: ${POSTGRES_USER:-unievt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unievt}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-unievt} -d ${POSTGRES_DB:-unievtdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - unievt_net
+
+  # ── MailHog (SMTP dev — UI: http://localhost:8025) ─────────────────────────
+  mailhog:
+    image: mailhog/mailhog
+    container_name: unievt-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - unievt_net
+
+  # ── Spring Boot backend ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: unievt-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-unievtdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-unievt}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-unievt}
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    networks:
+      - unievt_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+
+  # ── Prometheus ─────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: unievt-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    networks:
+      - unievt_net
+
+  # ── Loki (log aggregation) ─────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: unievt-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - unievt_net
+
+  # ── Promtail (ships container logs to Loki) ────────────────────────────────
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: unievt-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./monitoring/loki/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+    networks:
+      - unievt_net
+
+  # ── Grafana (dashboards — http://localhost:3000) ───────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: unievt-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SERVER_HTTP_PORT: 3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - unievt_net
+
+  # ── Frontend (Next.js — http://localhost:3001) ─────────────────────────────
+  frontend:
+    build:
+      context: ../Frontend_unievent
+      dockerfile: ../UniEvent-backend/Dockerfile.frontend
+    container_name: unievt-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    networks:
+      - unievt_net
+
+  # ── pgAdmin (DB browser — http://localhost:5050) ───────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: unievt-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@unievt.ma
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - unievt_net
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+  pgadmin_data:
+  loki_data:
+
+networks:
+  unievt_net:
+    driver: bridge

@@ -1,0 +1,134 @@
+name: CI — UniEvent
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ── 1. Backend tests against real Postgres ───────────────────────────────────
+  test-backend:
+    name: Backend Tests (Java 21 + Postgres)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: unievtdb
+          POSTGRES_USER: unievt
+          POSTGRES_PASSWORD: unievt
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U unievt -d unievtdb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      - name: Run tests
+        run: mvn verify -B
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/unievtdb
+          SPRING_DATASOURCE_USERNAME: unievt
+          SPRING_DATASOURCE_PASSWORD: unievt
+          JWT_SECRET: test-secret-key-for-ci-minimum-256-bits-long-padding-here
+
+      - name: Upload Surefire reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+
+  # ── 2. Build JAR + Docker image ───────────────────────────────────────────────
+  build-backend:
+    name: Build Backend Docker Image
+    runs-on: ubuntu-latest
+    needs: test-backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: unievt-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── 3. Frontend type-check + build ────────────────────────────────────────────
+  test-frontend:
+    name: Frontend Type Check + Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Frontend_unievent/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./Frontend_unievent
+        run: npm ci
+
+      - name: Type check
+        working-directory: ./Frontend_unievent
+        run: npm run type-check
+
+      - name: Build
+        working-directory: ./Frontend_unievent
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build
+
+  # ── 4. Frontend Docker image ──────────────────────────────────────────────────
+  build-frontend:
+    name: Build Frontend Docker Image
+    runs-on: ubuntu-latest
+    needs: test-frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Frontend_unievent
+          push: false
+          tags: unievt-frontend:${{ github.sha }}
+          build-args: NEXT_PUBLIC_API_URL=http://localhost:8080
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

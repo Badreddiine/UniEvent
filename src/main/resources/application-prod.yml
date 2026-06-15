@@ -1,0 +1,10 @@
+# ============================================================================
+# UniEvent — Profil PRODUCTION (Render) — partie YAML
+# Périmètre : JWT + CORS uniquement.
+# (datasource, redis, mail, actuator, logging → application-prod.properties)
+# ============================================================================
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  cors:
+    allowed-origins: ${FRONTEND_URL}

@@ -1,0 +1,58 @@
+services:
+
+  # ── PostgreSQL (dev) ────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: unievt-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: unievtdb
+      POSTGRES_USER: unievt
+      POSTGRES_PASSWORD: unievt
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unievt -d unievtdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MailHog (mock SMTP + web UI at http://localhost:8025) ──────────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: unievt-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP — app sends mail here
+      - "8025:8025"   # Web UI — inspect captured emails
+
+  # ── Spring Boot app (dev profile) ──────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder          # stop at build stage so we can mount target/
+    image: unievt-backend:dev
+    container_name: unievt-app-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.local             # gitignored; copy from .env.example
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/unievtdb
+      SPRING_DATASOURCE_USERNAME: unievt
+      SPRING_DATASOURCE_PASSWORD: unievt
+      JWT_SECRET: dev-only-secret-key-do-not-use-in-production
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+volumes:
+  postgres_dev_data:

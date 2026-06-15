@@ -1,0 +1,19 @@
+package com.unievt.repository;
+
+import com.unievt.entity.Badge;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface BadgeRepository extends JpaRepository<Badge, UUID> {
+
+    Optional<Badge> findByInscriptionId(Long inscriptionId);
+
+    List<Badge> findByEvenementId(Long evenementId);
+
+    List<Badge> findByUtilisateurId(Long utilisateurId);
+}

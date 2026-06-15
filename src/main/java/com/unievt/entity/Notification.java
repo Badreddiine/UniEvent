@@ -1,5 +1,6 @@
 package com.unievt.entity;
 
+import com.unievt.enums.NotificationTypeEnum;
 import com.unievt.enums.TypeNotifEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,10 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TypeNotifEnum type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notification_type")
+    private NotificationTypeEnum notificationType;
 
     @Column(nullable = false)
     @Builder.Default

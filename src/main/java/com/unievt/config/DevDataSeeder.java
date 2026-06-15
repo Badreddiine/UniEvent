@@ -6,7 +6,7 @@ import com.unievt.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +34,7 @@ import java.util.UUID;
  * (hashé en BCrypt avant insertion).
  */
 @Component
+@Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
 public class DevDataSeeder implements CommandLineRunner {
@@ -50,7 +51,7 @@ public class DevDataSeeder implements CommandLineRunner {
     private final NotificationRepository notificationRepository;
     private final EvaluationRepository evaluationRepository;
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
     private static final String DEFAULT_PASSWORD = "password";
 
     @Override
