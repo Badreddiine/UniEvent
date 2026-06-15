@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton } from "@/components/shared/back-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, Clock, Calendar, Users, Search, Eye } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar, Users, Search, Eye, Edit, Send } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { eventService } from "@/services/event.service";
 import type { StatutEvenementEnum } from "@/types/api";
@@ -38,6 +38,13 @@ export default function AdminEventsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: (id: number) => eventService.cancel(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
+  });
+
+  // Approuver / Publier : le backend n'a qu'un endpoint /publish (VERIFIE → APPROUVE),
+  // il n'existe pas de /status générique ni de statut "PUBLIE".
+  const publishMutation = useMutation({
+    mutationFn: (id: number) => eventService.publish(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-events"] }),
   });
 
@@ -117,14 +124,46 @@ export default function AdminEventsPage() {
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {/* Modifier (réutilise la route d'édition existante) */}
+                      <Link href={`/dashboard/events/edit/${ev.id}`}
+                        title="Modifier"
+                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                        <Edit size={14} />
+                      </Link>
+
+                      {/* Approuver / Publier (= /publish → APPROUVE), tant que non approuvé/terminal */}
+                      {ev.statut !== "APPROUVE" && ev.statut !== "ANNULE" && ev.statut !== "TERMINE" && ev.statut !== "REJETE" && (
+                        <>
+                          <button
+                            onClick={() => publishMutation.mutate(ev.id)}
+                            disabled={publishMutation.isPending}
+                            title="Approuver"
+                            className="p-1.5 rounded-lg hover:bg-green-50 text-muted-foreground hover:text-green-600 transition-colors dark:hover:bg-green-900/20 disabled:opacity-50">
+                            <CheckCircle2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => publishMutation.mutate(ev.id)}
+                            disabled={publishMutation.isPending}
+                            title="Publier"
+                            className="p-1.5 rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors dark:hover:bg-blue-900/20 disabled:opacity-50">
+                            <Send size={14} />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Voir */}
                       <Link href={`/events/${ev.id}`}
+                        title="Voir"
                         className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                         <Eye size={14} />
                       </Link>
+
+                      {/* Annuler */}
                       {ev.statut !== "ANNULE" && ev.statut !== "TERMINE" && (
                         <button
                           onClick={() => cancelMutation.mutate(ev.id)}
                           disabled={cancelMutation.isPending}
+                          title="Annuler"
                           className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors dark:hover:bg-red-900/20 disabled:opacity-50">
                           <XCircle size={14} />
                         </button>

@@ -6,6 +6,10 @@ import type { NavItem } from "@/types";
 
 // ── Admin Navigation ──────────────────────────────────────────
 
+// Menu réduit aux pages réellement existantes (sous-liens cassés retirés :
+// /admin/users/roles, /admin/users/invitations, /admin/clubs/requests,
+// /admin/events/approvals, /admin/events/calendar, /admin/rooms/reservations,
+// /admin/rooms/planning, /admin/settings/notifications, /security, /integrations).
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   {
     label: "Vue d'ensemble",
@@ -18,103 +22,23 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     href: "/admin/users",
     icon: "Users",
     roles: ["admin"],
-    children: [
-      {
-        label: "Tous les utilisateurs",
-        href: "/admin/users",
-        icon: "List",
-        roles: ["admin"],
-      },
-      {
-        label: "Rôles & permissions",
-        href: "/admin/users/roles",
-        icon: "ShieldCheck",
-        roles: ["admin"],
-      },
-      {
-        label: "Invitations",
-        href: "/admin/users/invitations",
-        icon: "UserPlus",
-        roles: ["admin"],
-      },
-    ],
-  },
-  {
-    label: "Clubs",
-    href: "/admin/clubs",
-    icon: "GraduationCap",
-    roles: ["admin"],
-    children: [
-      {
-        label: "Tous les clubs",
-        href: "/admin/clubs",
-        icon: "List",
-        roles: ["admin"],
-      },
-      {
-        label: "Demandes création",
-        href: "/admin/clubs/requests",
-        icon: "Clock",
-        roles: ["admin"],
-      },
-    ],
   },
   {
     label: "Événements",
     href: "/admin/events",
     icon: "Calendar",
     roles: ["admin"],
-    children: [
-      {
-        label: "Tous les événements",
-        href: "/admin/events",
-        icon: "List",
-        roles: ["admin"],
-      },
-      {
-        label: "File d'approbation",
-        href: "/admin/events/approvals",
-        icon: "CheckSquare",
-        roles: ["admin"],
-      },
-      {
-        label: "Calendrier global",
-        href: "/admin/events/calendar",
-        icon: "CalendarDays",
-        roles: ["admin"],
-      },
-    ],
   },
   {
     label: "Salles",
     href: "/admin/rooms",
     icon: "Building2",
     roles: ["admin"],
-    children: [
-      {
-        label: "Gestion des salles",
-        href: "/admin/rooms",
-        icon: "List",
-        roles: ["admin"],
-      },
-      {
-        label: "Réservations",
-        href: "/admin/rooms/reservations",
-        icon: "BookOpen",
-        roles: ["admin"],
-      },
-      {
-        label: "Planning",
-        href: "/admin/rooms/planning",
-        icon: "CalendarDays",
-        roles: ["admin"],
-      },
-    ],
   },
   {
-    label: "Analytique",
-    href: "/admin/analytics",
-    icon: "BarChart3",
+    label: "Partenaires",
+    href: "/admin/partners",
+    icon: "GraduationCap",
     roles: ["admin"],
   },
   {
@@ -122,32 +46,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     href: "/admin/settings",
     icon: "SlidersHorizontal",
     roles: ["admin"],
-    children: [
-      {
-        label: "Général",
-        href: "/admin/settings",
-        icon: "Settings",
-        roles: ["admin"],
-      },
-      {
-        label: "Notifications",
-        href: "/admin/settings/notifications",
-        icon: "Bell",
-        roles: ["admin"],
-      },
-      {
-        label: "Sécurité",
-        href: "/admin/settings/security",
-        icon: "ShieldCheck",
-        roles: ["admin"],
-      },
-      {
-        label: "Intégrations",
-        href: "/admin/settings/integrations",
-        icon: "Zap",
-        roles: ["admin"],
-      },
-    ],
   },
 ];
 
@@ -156,6 +54,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 export const ADMIN_BREADCRUMB_LABELS: Record<string, string> = {
   admin: "Administration",
   users: "Utilisateurs",
+  partners: "Partenaires",
   roles: "Rôles & permissions",
   invitations: "Invitations",
   clubs: "Clubs",
