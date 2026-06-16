@@ -102,7 +102,10 @@ public class BadgeService {
                 .utilisateur(inscription.getEtudiant())
                 .build();
 
-        Badge saved = badgeRepository.save(badge);
+        // saveAndFlush forces the INSERT now, so a unique-constraint violation
+        // surfaces as DataIntegrityViolationException inside the caller's try-catch
+        // (and within this REQUIRES_NEW transaction) rather than at commit time.
+        Badge saved = badgeRepository.saveAndFlush(badge);
 
         // Send badge-issued notification
         if (inscription.getEtudiant() != null) {
