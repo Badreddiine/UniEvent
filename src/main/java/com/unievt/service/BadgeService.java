@@ -13,6 +13,8 @@ import com.unievt.entity.Inscription;
 import com.unievt.enums.NotificationTypeEnum;
 import com.unievt.repository.BadgeRepository;
 import com.unievt.repository.InscriptionRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,9 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final InscriptionRepository inscriptionRepository;
     private final NotificationService notificationService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /** Self-reference so {@link #createBadge} runs in its own (REQUIRES_NEW) transaction. */
     @Autowired
@@ -116,10 +121,13 @@ public class BadgeService {
                 .utilisateur(inscription.getEtudiant())
                 .build();
 
-        // saveAndFlush forces the INSERT now, so a unique-constraint violation
-        // surfaces as DataIntegrityViolationException inside the caller's try-catch
-        // (and within this REQUIRES_NEW transaction) rather than at commit time.
-        Badge saved = badgeRepository.saveAndFlush(badge);
+        // persist (not save) because the UUID id is assigned manually: save() would
+        // treat the entity as detached and issue a merge → OptimisticLockingFailureException.
+        // flush forces the INSERT now so any constraint violation surfaces in the
+        // caller's try-catch (and within this REQUIRES_NEW transaction).
+        entityManager.persist(badge);
+        entityManager.flush();
+        Badge saved = badge;
 
         // Send badge-issued notification
         if (inscription.getEtudiant() != null) {
