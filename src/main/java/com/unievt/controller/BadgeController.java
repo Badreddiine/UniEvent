@@ -11,14 +11,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Badges", description = "QR-code badge generation and verification")
 public class BadgeController {
 
@@ -53,9 +57,13 @@ public class BadgeController {
         @ApiResponse(responseCode = "404", description = "Registration not found")
     })
     @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/registrations/{id}/badge")
     public ResponseEntity<BadgeDto> getBadge(
-            @Parameter(description = "Registration (inscription) ID") @PathVariable Long id) {
+            @Parameter(description = "Registration (inscription) ID") @PathVariable Long id,
+            Authentication authentication) {
+        log.info("GET badge called for id={} by user={}",
+            id, authentication != null ? authentication.getName() : "null");
         return ResponseEntity.ok(badgeService.generateForRegistration(id));
     }
 
