@@ -1,6 +1,7 @@
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\AsyncConfig.java
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\CacheConfig.java
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\DevDataSeeder.java
+C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\HttpClientConfig.java
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\JpaAuditingConfig.java
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\OpenApiConfig.java
 C:\Users\badr2002\Desktop\unievent\UniEvent-backend\src\main\java\com\unievt\config\SecurityConfig.java

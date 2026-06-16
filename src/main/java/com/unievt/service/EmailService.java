@@ -1,18 +1,20 @@
 package com.unievt.service;
 
 import com.unievt.enums.NotificationTypeEnum;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -20,34 +22,29 @@ import java.util.Map;
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine;
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-    @Value("${spring.mail.username:noreply@unievt.ma}")
-    private String fromAddress;
+    private final TemplateEngine templateEngine;
+    private final RestTemplate restTemplate;
+
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
+    @Value("${brevo.sender.email:aed4bc001@smtp-brevo.com}")
+    private String senderEmail;
+
+    @Value("${brevo.sender.name:UniEvent}")
+    private String senderName;
 
     @Async("emailTaskExecutor")
     public void sendNotificationEmail(String toEmail, String subject,
                                        NotificationTypeEnum type, Map<String, Object> vars) {
-        try {
-            String templateName = resolveTemplate(type);
-            Context ctx = new Context();
-            vars.forEach(ctx::setVariable);
+        String templateName = resolveTemplate(type);
+        Context ctx = new Context();
+        vars.forEach(ctx::setVariable);
+        String html = templateEngine.process(templateName, ctx);
 
-            String html = templateEngine.process(templateName, ctx);
-
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(html, true);
-
-            mailSender.send(msg);
-            log.debug("Email sent to {} for type {}", toEmail, type);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {} for type {}: {}", toEmail, type, e.getMessage());
-        }
+        send(toEmail, subject, html);
     }
 
     /**
@@ -56,24 +53,38 @@ public class EmailService {
      */
     @Async("emailTaskExecutor")
     public void sendVerificationEmail(String toEmail, String userName, String verificationLink) {
+        Context ctx = new Context();
+        ctx.setVariable("userName", userName);
+        ctx.setVariable("verificationLink", verificationLink);
+        String html = templateEngine.process("email/verify-email", ctx);
+
+        send(toEmail, "Vérifiez votre adresse email — UniEvent", html);
+    }
+
+    // ── Brevo REST transport ──────────────────────────────────────────────────
+
+    /**
+     * Sends an HTML email through the Brevo transactional email REST API.
+     * POST https://api.brevo.com/v3/smtp/email
+     */
+    private void send(String toEmail, String subject, String htmlContent) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.set("api-key", brevoApiKey);
+
+        Map<String, Object> body = Map.of(
+                "sender", Map.of("email", senderEmail, "name", senderName),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "htmlContent", htmlContent
+        );
+
         try {
-            Context ctx = new Context();
-            ctx.setVariable("userName", userName);
-            ctx.setVariable("verificationLink", verificationLink);
-
-            String html = templateEngine.process("email/verify-email", ctx);
-
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(toEmail);
-            helper.setSubject("Vérifiez votre adresse email — UniEvent");
-            helper.setText(html, true);
-
-            mailSender.send(msg);
-            log.debug("Verification email sent to {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+            restTemplate.postForEntity(BREVO_API_URL, new HttpEntity<>(body, headers), String.class);
+            log.debug("Email sent to {} via Brevo", toEmail);
+        } catch (RestClientException e) {
+            log.error("Failed to send email to {} via Brevo: {}", toEmail, e.getMessage());
         }
     }
 

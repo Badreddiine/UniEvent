@@ -238,6 +238,7 @@ com\unievt\entity\EvenementIntervenantId.class
 com\unievt\dto\ReservationResponseDTO$ReservationResponseDTOBuilder.class
 com\unievt\mapper\SalleMapper.class
 com\unievt\dto\InscriptionCreateDTO$InscriptionCreateDTOBuilder.class
+com\unievt\config\HttpClientConfig.class
 com\unievt\repository\NotificationRepository.class
 com\unievt\dto\EvenementCreateDTO.class
 com\unievt\dto\NotificationResponseDTO$NotificationResponseDTOBuilder.class
