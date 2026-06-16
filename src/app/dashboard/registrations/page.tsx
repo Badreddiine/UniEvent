@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton } from "@/components/shared/back-button";
@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { cn } from "@/lib/utils";
 import { registrationService } from "@/services/registration.service";
 import { badgeService } from "@/services/badge.service";
-import type { RegistrationDTO, BadgeDto } from "@/types/api";
+import type { RegistrationDTO } from "@/types/api";
 
 // ── Status config ─────────────────────────────────────────────
 
@@ -44,27 +44,17 @@ function TicketModal({
   reg: RegistrationDTO;
   onClose: () => void;
 }) {
-  const [badge, setBadge] = useState<BadgeDto | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  // Prevent the double badge generation triggered by React StrictMode's
-  // double-invoked effect (and any re-render of this modal).
-  const requestedRef = useRef(false);
-
-  useEffect(() => {
-    if (requestedRef.current) return;
-    requestedRef.current = true;
-
-    let active = true;
-    setLoading(true);
-    setError(false);
-    badgeService
-      .generate(reg.id)
-      .then((b) => { if (active) setBadge(b); })
-      .catch(() => { if (active) setError(true); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [reg.id]);
+  // React Query dedupes by key at the QueryClient level (which outlives the
+  // component), so the badge is generated only once even if StrictMode mounts
+  // the modal twice or it is reopened.
+  const { data: badge, isLoading: loading, isError: error } = useQuery({
+    queryKey: ["badge", reg.id],
+    queryFn: () => badgeService.generate(reg.id),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <div
