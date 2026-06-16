@@ -100,7 +100,8 @@ public class AuthService {
                         "Compte introuvable après création"));
 
         String token = UUID.randomUUID().toString();
-        user.setActif(false);
+        // Account is active immediately; access is gated on emailVerified by the frontend.
+        user.setActif(true);
         user.setEmailVerified(false);
         user.setVerificationToken(token);
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
