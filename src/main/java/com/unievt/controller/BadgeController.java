@@ -80,4 +80,19 @@ public class BadgeController {
             @Parameter(description = "Badge UUID token") @PathVariable UUID token) {
         return badgeService.verifyToken(token);
     }
+
+    @Operation(summary = "Check in an attendee via badge token (public endpoint)",
+               description = "Validates the badge token and marks the linked registration as present. "
+                   + "No authentication required — suitable for scanning from any device at event entry. "
+                   + "Idempotent: checking in twice is a no-op.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Attendee checked in",
+            content = @Content(schema = @Schema(implementation = BadgeDto.class))),
+        @ApiResponse(responseCode = "404", description = "Token not found / invalid")
+    })
+    @PatchMapping("/api/badges/verify/{token}/check-in")
+    public BadgeDto checkIn(
+            @Parameter(description = "Badge UUID token") @PathVariable UUID token) {
+        return badgeService.checkIn(token);
+    }
 }

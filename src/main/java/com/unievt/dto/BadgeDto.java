@@ -42,4 +42,7 @@ public class BadgeDto {
 
     @Schema(description = "QR code image as Base64-encoded PNG (data URI ready)")
     private String qrImage;
+
+    @Schema(description = "Whether the attendee has been checked in (present)")
+    private Boolean present;
 }

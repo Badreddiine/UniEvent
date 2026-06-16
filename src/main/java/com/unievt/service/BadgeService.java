@@ -101,6 +101,26 @@ public class BadgeService {
         return toDto(badge);
     }
 
+    /**
+     * Validates the badge token and marks the linked registration as present.
+     * Idempotent: checking in an already-present attendee is a no-op.
+     */
+    @Transactional
+    public BadgeDto checkIn(UUID token) {
+        Badge badge = badgeRepository.findById(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Badge invalide ou introuvable"));
+
+        Inscription inscription = badge.getInscription();
+        if (inscription != null && !Boolean.TRUE.equals(inscription.getPresent())) {
+            inscription.setPresent(true);
+            inscriptionRepository.save(inscription);
+            log.info("Check-in: inscriptionId={} marked present via badge token={}",
+                inscription.getId(), token);
+        }
+        return toDto(badge);
+    }
+
     // ── private helpers ───────────────────────────────────────────────────────
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -199,6 +219,7 @@ public class BadgeService {
                 .inscriptionId(badge.getInscription() != null ? badge.getInscription().getId() : null)
                 .genereLe(badge.getGenereLe())
                 .qrImage(badge.getQrData())
+                .present(badge.getInscription() != null ? badge.getInscription().getPresent() : null)
                 .build();
     }
 }
