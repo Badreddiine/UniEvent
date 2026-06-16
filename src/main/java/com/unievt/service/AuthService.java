@@ -112,7 +112,7 @@ public class AuthService {
 
         // No auto-login: the user must verify their email first.
         return RegisterResponseDTO.builder()
-                .message("Vérifiez votre email pour activer votre compte.")
+                .message("Compte créé. Vérifiez votre email pour activer votre compte.")
                 .build();
     }
 
