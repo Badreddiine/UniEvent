@@ -15,8 +15,12 @@ import com.unievt.repository.BadgeRepository;
 import com.unievt.repository.InscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,6 +29,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,16 +41,34 @@ public class BadgeService {
     private final InscriptionRepository inscriptionRepository;
     private final NotificationService notificationService;
 
+    /** Self-reference so {@link #createBadge} runs in its own (REQUIRES_NEW) transaction. */
+    @Autowired
+    @Lazy
+    private BadgeService self;
+
     @Transactional
     public BadgeDto generateForRegistration(Long inscriptionId) {
-        Inscription inscription = inscriptionRepository.findById(inscriptionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Inscription introuvable: " + inscriptionId));
+        // Idempotent: if a badge already exists, return it instead of creating (and 409-ing) again.
+        Optional<Badge> existing = badgeRepository.findByInscriptionId(inscriptionId);
+        if (existing.isPresent()) {
+            return toDto(existing.get());
+        }
 
-        // Return existing badge if already generated
-        return badgeRepository.findByInscriptionId(inscriptionId)
-                .map(this::toDto)
-                .orElseGet(() -> createBadge(inscription));
+        // 404 if the registration itself doesn't exist
+        if (!inscriptionRepository.existsById(inscriptionId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Inscription introuvable: " + inscriptionId);
+        }
+
+        try {
+            return self.createBadge(inscriptionId);
+        } catch (DataIntegrityViolationException e) {
+            // A concurrent request won the race — return the badge it created.
+            return badgeRepository.findByInscriptionId(inscriptionId)
+                    .map(this::toDto)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Badge déjà existant pour cette inscription"));
+        }
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +81,12 @@ public class BadgeService {
 
     // ── private helpers ───────────────────────────────────────────────────────
 
-    private BadgeDto createBadge(Inscription inscription) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BadgeDto createBadge(Long inscriptionId) {
+        Inscription inscription = inscriptionRepository.findById(inscriptionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Inscription introuvable: " + inscriptionId));
+
         UUID badgeToken = UUID.randomUUID();
 
         String qrContent = buildQrContent(inscription, badgeToken);
