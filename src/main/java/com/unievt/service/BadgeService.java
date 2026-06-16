@@ -48,8 +48,10 @@ public class BadgeService {
 
     @Transactional
     public BadgeDto generateForRegistration(Long inscriptionId) {
+        log.debug("generateForRegistration called for inscriptionId={}", inscriptionId);
         // Idempotent: if a badge already exists, return it instead of creating (and 409-ing) again.
         Optional<Badge> existing = badgeRepository.findByInscriptionId(inscriptionId);
+        log.debug("existing badge found: {}", existing.isPresent());
         if (existing.isPresent()) {
             return toDto(existing.get());
         }
@@ -63,6 +65,9 @@ public class BadgeService {
         try {
             return self.createBadge(inscriptionId);
         } catch (DataIntegrityViolationException e) {
+            log.error("createBadge failed for inscriptionId={}: {} | cause: {}",
+                inscriptionId, e.getMessage(),
+                e.getCause() != null ? e.getCause().getMessage() : "no cause");
             // A concurrent request won the race — return the badge it created.
             return badgeRepository.findByInscriptionId(inscriptionId)
                     .map(this::toDto)
