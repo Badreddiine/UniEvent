@@ -300,6 +300,7 @@ export interface BadgeDto {
   inscriptionId?: number;
   genereLe?: string;
   qrImage?: string;
+  present?: boolean;
 }
 
 // ─── Partner & Sponsor DTOs ──────────────────────────────────────────────────

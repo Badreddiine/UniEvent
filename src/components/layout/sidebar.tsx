@@ -9,7 +9,7 @@ import {
   BookOpen, Building2, BarChart3, Settings2, Users,
   GraduationCap, SlidersHorizontal, Plus, FolderOpen,
   Clock, CheckSquare, Ticket, List, UserPlus, ChevronDown,
-  ChevronRight, PanelLeftClose, PanelLeft,
+  ChevronRight, PanelLeftClose, PanelLeft, QrCode,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
@@ -22,7 +22,7 @@ const ICONS: Record<string, React.ElementType> = {
   LayoutDashboard, Calendar, CalendarDays, CalendarCheck,
   BookOpen, Building2, BarChart3, Settings2, Users,
   GraduationCap, SlidersHorizontal, Plus, FolderOpen,
-  Clock, CheckSquare, Ticket, List, UserPlus,
+  Clock, CheckSquare, Ticket, List, UserPlus, QrCode,
 };
 
 // ── Sidebar width constants ───────────────────────────────────

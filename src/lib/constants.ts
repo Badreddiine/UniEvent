@@ -47,6 +47,12 @@ export const NAV_ITEMS: NavItem[] = [
         icon: "CheckSquare",
         roles: ["responsable_evenements", "doyen"],
       },
+      {
+        label: "Scanner QR",
+        href: "/dashboard/events/check-in",
+        icon: "QrCode",
+        roles: ["responsable_evenements", "president_club", "admin", "doyen"],
+      },
     ],
   },
   // ─ Reservations

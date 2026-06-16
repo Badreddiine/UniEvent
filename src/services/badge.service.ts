@@ -13,4 +13,10 @@ export const badgeService = {
       .get<BadgeDto>(`/api/badges/verify/${token}`)
       .then((r) => r.data);
   },
+
+  checkIn(token: string) {
+    return apiClient
+      .patch<BadgeDto>(`/api/badges/verify/${token}/check-in`)
+      .then((r) => r.data);
+  },
 };
