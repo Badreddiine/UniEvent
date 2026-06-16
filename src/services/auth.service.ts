@@ -22,4 +22,10 @@ export const authService = {
   logout(refreshToken: string) {
     return apiClient.post('/api/auth/logout', { refreshToken });
   },
+
+  resendVerification(email: string) {
+    return apiClient
+      .post('/api/auth/resend-verification', null, { params: { email } })
+      .then((r) => r.data);
+  },
 };
