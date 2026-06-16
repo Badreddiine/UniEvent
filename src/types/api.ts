@@ -89,6 +89,7 @@ export interface LoginResponseDTO {
   userId: number;
   email: string;
   role: string;
+  emailVerified: boolean;
 }
 
 export interface RefreshTokenRequestDTO {

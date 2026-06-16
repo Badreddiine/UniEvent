@@ -23,6 +23,7 @@ export interface User {
   filiere?: string;
   anneeEtude?: number;
   twoFactorEnabled: boolean;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }
