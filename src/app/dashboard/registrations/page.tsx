@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { cn } from "@/lib/utils";
 import { registrationService } from "@/services/registration.service";
 import { badgeService } from "@/services/badge.service";
-import type { RegistrationDTO } from "@/types/api";
+import type { RegistrationDTO, BadgeDto } from "@/types/api";
 
 // ── Status config ─────────────────────────────────────────────
 
@@ -37,26 +37,22 @@ function Skeleton({ className }: { className?: string }) {
 
 // ── Ticket Modal ──────────────────────────────────────────────
 
+// Presentational only: the badge is fetched once by the parent and passed in as
+// props, so StrictMode double-mounting this modal can no longer trigger a second
+// badge request.
 function TicketModal({
   reg,
+  badge,
+  loading,
+  error,
   onClose,
 }: {
   reg: RegistrationDTO;
+  badge: BadgeDto | null;
+  loading: boolean;
+  error: boolean;
   onClose: () => void;
 }) {
-  // React Query dedupes by key at the QueryClient level (which outlives the
-  // component), so the badge is generated only once even if StrictMode mounts
-  // the modal twice or it is reopened.
-  const { data: badge, isLoading: loading, isError: error } = useQuery({
-    queryKey: ["badge", reg.id],
-    queryFn: () => badgeService.generate(reg.id),
-    enabled: !!reg?.id,
-    staleTime: 0,
-    gcTime: 0,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
@@ -195,6 +191,33 @@ export default function RegistrationsPage() {
   const [ticketReg, setTicketReg] = useState<RegistrationDTO | null>(null);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
+  // Badge fetched here (parent stays mounted) and passed down to TicketModal,
+  // so the request fires exactly once per "Voir mon billet" click.
+  const [badge, setBadge] = useState<BadgeDto | null>(null);
+  const [badgeLoading, setBadgeLoading] = useState(false);
+  const [badgeError, setBadgeError] = useState(false);
+
+  const openTicket = async (reg: RegistrationDTO) => {
+    setTicketReg(reg);
+    setBadge(null);
+    setBadgeError(false);
+    setBadgeLoading(true);
+    try {
+      setBadge(await badgeService.generate(reg.id));
+    } catch {
+      setBadgeError(true);
+    } finally {
+      setBadgeLoading(false);
+    }
+  };
+
+  const closeTicket = () => {
+    setTicketReg(null);
+    setBadge(null);
+    setBadgeError(false);
+    setBadgeLoading(false);
+  };
+
   const { data: registrations, isLoading, error } = useQuery({
     queryKey: ["my-registrations"],
     queryFn: registrationService.getMyRegistrations,
@@ -287,7 +310,7 @@ export default function RegistrationsPage() {
               key={reg.id}
               reg={reg}
               index={i}
-              onTicket={setTicketReg}
+              onTicket={openTicket}
               onCancel={(r) => cancelMutation.mutate(r.evenementId)}
               cancelling={cancellingId === reg.evenementId}
             />
@@ -297,7 +320,13 @@ export default function RegistrationsPage() {
 
       {/* Ticket Modal */}
       {ticketReg && (
-        <TicketModal reg={ticketReg} onClose={() => setTicketReg(null)} />
+        <TicketModal
+          reg={ticketReg}
+          badge={badge}
+          loading={badgeLoading}
+          error={badgeError}
+          onClose={closeTicket}
+        />
       )}
     </div>
   );
