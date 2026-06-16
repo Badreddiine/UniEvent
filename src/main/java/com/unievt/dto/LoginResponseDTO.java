@@ -16,4 +16,5 @@ public class LoginResponseDTO {
     private Long userId;
     private String email;
     private String role;
+    private boolean emailVerified;
 }

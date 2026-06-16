@@ -25,6 +25,10 @@ public class CustomUserDetails implements UserDetails {
         return utilisateur.getRole();
     }
 
+    public Boolean getEmailVerified() {
+        return utilisateur.getEmailVerified();
+    }
+
     @Override
     public String getUsername() {
         return utilisateur.getEmail();

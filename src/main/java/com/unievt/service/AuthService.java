@@ -58,6 +58,7 @@ public class AuthService {
                 .userId(userDetails.getId())
                 .email(userDetails.getUsername())
                 .role(userDetails.getRole() != null ? userDetails.getRole().name() : "USER")
+                .emailVerified(userDetails.getEmailVerified() != null && userDetails.getEmailVerified())
                 .build();
     }
 
@@ -77,6 +78,7 @@ public class AuthService {
                 .userId(userDetails.getId())
                 .email(userDetails.getUsername())
                 .role(userDetails.getRole() != null ? userDetails.getRole().name() : "USER")
+                .emailVerified(userDetails.getEmailVerified() != null && userDetails.getEmailVerified())
                 .build();
     }
 
@@ -167,6 +169,7 @@ public class AuthService {
                 .userId(userDetails.getId())
                 .email(userDetails.getUsername())
                 .role(userDetails.getRole() != null ? userDetails.getRole().name() : "USER")
+                .emailVerified(true)
                 .build();
     }
 
