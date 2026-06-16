@@ -50,8 +50,9 @@ function TicketModal({
   const { data: badge, isLoading: loading, isError: error } = useQuery({
     queryKey: ["badge", reg.id],
     queryFn: () => badgeService.generate(reg.id),
-    staleTime: Infinity,
-    gcTime: Infinity,
+    enabled: !!reg?.id,
+    staleTime: 0,
+    gcTime: 0,
     retry: false,
     refetchOnWindowFocus: false,
   });
