@@ -4,7 +4,7 @@ import type { BadgeDto } from '@/types/api';
 export const badgeService = {
   generate(registrationId: number) {
     return apiClient
-      .post<BadgeDto>(`/api/registrations/${registrationId}/badge`)
+      .get<BadgeDto>(`/api/registrations/${registrationId}/badge`)
       .then((r) => r.data);
   },
 
