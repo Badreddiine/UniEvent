@@ -57,22 +57,31 @@ public class BadgeService {
         }
 
         // 404 if the registration itself doesn't exist
-        if (!inscriptionRepository.existsById(inscriptionId)) {
+        boolean exists = inscriptionRepository.existsById(inscriptionId);
+        log.debug("inscription exists: {}", exists);
+        if (!exists) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Inscription introuvable: " + inscriptionId);
         }
 
         try {
-            return self.createBadge(inscriptionId);
+            log.debug("calling self.createBadge for inscriptionId={}", inscriptionId);
+            BadgeDto result = self.createBadge(inscriptionId);
+            log.debug("badge created successfully: {}", result);
+            return result;
         } catch (DataIntegrityViolationException e) {
-            log.error("createBadge failed for inscriptionId={}: {} | cause: {}",
+            log.error("DataIntegrityViolation for inscriptionId={}: {} | cause: {}",
                 inscriptionId, e.getMessage(),
-                e.getCause() != null ? e.getCause().getMessage() : "no cause");
+                e.getCause() != null ? e.getCause().getMessage() : "no cause", e);
             // A concurrent request won the race — return the badge it created.
             return badgeRepository.findByInscriptionId(inscriptionId)
                     .map(this::toDto)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,
                             "Badge déjà existant pour cette inscription"));
+        } catch (Exception e) {
+            log.error("Unexpected error in generateForRegistration for inscriptionId={}: {}",
+                inscriptionId, e.getMessage(), e);
+            throw e;
         }
     }
 
