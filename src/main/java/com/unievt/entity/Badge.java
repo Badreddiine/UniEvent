@@ -16,7 +16,6 @@ import java.util.UUID;
 public class Badge extends BaseAuditEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "template_nom")

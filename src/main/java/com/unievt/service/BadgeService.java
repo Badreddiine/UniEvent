@@ -70,6 +70,9 @@ public class BadgeService {
                     "Inscription introuvable: " + inscriptionId);
         }
 
+        // Drop any L1-cached (stale) Badge before delegating to the REQUIRES_NEW tx,
+        // to avoid "detached entity passed to persist".
+        entityManager.clear();
         try {
             log.debug("calling self.createBadge for inscriptionId={}", inscriptionId);
             BadgeDto result = self.createBadge(inscriptionId);
@@ -121,10 +124,10 @@ public class BadgeService {
                 .utilisateur(inscription.getEtudiant())
                 .build();
 
-        // persist (not save) because the UUID id is assigned manually: save() would
-        // treat the entity as detached and issue a merge → OptimisticLockingFailureException.
+        // persist works cleanly now that Badge.id is @Id only (no @GeneratedValue):
+        // the manually-assigned UUID identifies a genuinely new row.
         // flush forces the INSERT now so any constraint violation surfaces in the
-        // caller's try-catch (and within this REQUIRES_NEW transaction).
+        // caller's try-catch.
         entityManager.persist(badge);
         entityManager.flush();
         Badge saved = badge;
