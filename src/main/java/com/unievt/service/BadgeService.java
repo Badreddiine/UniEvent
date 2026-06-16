@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -69,10 +70,9 @@ public class BadgeService {
             BadgeDto result = self.createBadge(inscriptionId);
             log.debug("badge created successfully: {}", result);
             return result;
-        } catch (DataIntegrityViolationException e) {
-            log.error("DataIntegrityViolation for inscriptionId={}: {} | cause: {}",
-                inscriptionId, e.getMessage(),
-                e.getCause() != null ? e.getCause().getMessage() : "no cause", e);
+        } catch (DataIntegrityViolationException | OptimisticLockingFailureException e) {
+            log.warn("Badge creation conflict for inscriptionId={}, reading existing: {}",
+                inscriptionId, e.getMessage());
             // A concurrent request won the race — return the badge it created.
             return badgeRepository.findByInscriptionId(inscriptionId)
                     .map(this::toDto)
