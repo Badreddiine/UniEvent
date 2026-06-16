@@ -3,6 +3,7 @@ import type {
   LoginRequestDTO,
   LoginResponseDTO,
   RegisterRequestDTO,
+  RegisterResponseDTO,
   RefreshTokenRequestDTO,
 } from '@/types/api';
 
@@ -12,7 +13,7 @@ export const authService = {
   },
 
   register(data: RegisterRequestDTO) {
-    return apiClient.post<LoginResponseDTO>('/api/auth/register', data).then((r) => r.data);
+    return apiClient.post<RegisterResponseDTO>('/api/auth/register', data).then((r) => r.data);
   },
 
   refresh(data: RefreshTokenRequestDTO) {

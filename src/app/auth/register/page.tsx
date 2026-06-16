@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { UserPlus, Mail, Lock, User, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
 import { useAuthForm } from "@/hooks/use-auth-form";
 import { registerSchema, type RegisterSchema } from "@/lib/validations/auth";
 import { authService } from "@/services/auth.service";
-import type { UserRole } from "@/types";
 import {
   AuthCard,
   AuthHeader,
@@ -23,8 +22,10 @@ import { cn } from "@/lib/utils";
 const STEP_LABELS = ["Identité", "Sécurité"];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [serverMessage, setServerMessage] = useState("");
 
   const form = useAuthForm<RegisterSchema>(registerSchema, {
     firstName: "",
@@ -46,8 +47,6 @@ export default function RegisterPage() {
     setStep((s) => Math.min(s + 1, 2));
   };
 
-  const { login } = useAuthStore();
-
   const handleRegister = async (data: RegisterSchema) => {
     const res = await authService.register({
       nom: data.lastName as string,
@@ -55,20 +54,13 @@ export default function RegisterPage() {
       email: data.email as string,
       motDePasse: data.password as string,
     });
-    login(
-      {
-        id: String(res.userId),
-        email: res.email,
-        firstName: data.firstName as string,
-        lastName: data.lastName as string,
-        role: "etudiant" as UserRole,
-        twoFactorEnabled: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      res.accessToken
-    );
+    // No auto-login: the account stays disabled until the email is verified.
+    setServerMessage(res.message);
     setSubmitted(true);
+    router.replace(
+      "/auth/login?message=" +
+        encodeURIComponent("Vérifiez votre email pour activer votre compte")
+    );
   };
 
   if (submitted) {
@@ -84,12 +76,11 @@ export default function RegisterPage() {
               Vérifiez votre email
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Un email de confirmation a été envoyé à{" "}
-              <strong className="text-foreground">{form.values.email as string}</strong>.
-              Cliquez sur le lien pour activer votre compte.
+              {serverMessage ||
+                "Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte."}
             </p>
             <Button asChild className="mt-6 w-full">
-              <Link href="/dashboard">Accéder à mon espace</Link>
+              <Link href="/auth/login">Aller à la connexion</Link>
             </Button>
           </div>
         </AuthCard>

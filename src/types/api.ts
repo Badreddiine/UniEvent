@@ -82,6 +82,10 @@ export interface RegisterRequestDTO {
   telephone?: string;
 }
 
+export interface RegisterResponseDTO {
+  message: string;
+}
+
 export interface LoginResponseDTO {
   accessToken: string;
   refreshToken: string;
