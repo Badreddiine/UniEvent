@@ -115,6 +115,30 @@ public class AuthService {
     }
 
     @Transactional
+    public RegisterResponseDTO resendVerification(String email) {
+        Utilisateur user = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Aucun compte associé à cet email"));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email déjà vérifié");
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        utilisateurRepository.save(user);
+
+        String verificationLink = frontendUrl + "/auth/verify-email?token=" + token;
+        emailService.sendVerificationEmail(
+                user.getEmail(), user.getPrenom() + " " + user.getNom(), verificationLink);
+
+        return RegisterResponseDTO.builder()
+                .message("Email de vérification renvoyé")
+                .build();
+    }
+
+    @Transactional
     public LoginResponseDTO verifyEmail(String token) {
         Utilisateur user = utilisateurRepository.findByVerificationToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,

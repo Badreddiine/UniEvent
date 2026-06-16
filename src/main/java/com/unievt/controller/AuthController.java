@@ -63,6 +63,22 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyEmail(token));
     }
 
+    // ── POST /api/auth/resend-verification ────────────────────────────────────
+
+    @Operation(
+        summary = "Resend verification email",
+        description = "Generates a fresh verification token and re-sends the activation email.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Verification email re-sent",
+            content = @Content(schema = @Schema(implementation = RegisterResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Email already verified"),
+        @ApiResponse(responseCode = "404", description = "No account for this email")
+    })
+    @PostMapping("/resend-verification")
+    public ResponseEntity<RegisterResponseDTO> resendVerification(@RequestParam String email) {
+        return ResponseEntity.ok(authService.resendVerification(email));
+    }
+
     // ── POST /api/auth/login ──────────────────────────────────────────────────
 
     @Operation(
