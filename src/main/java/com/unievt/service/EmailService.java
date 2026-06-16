@@ -50,6 +50,33 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sends the account-verification email containing the activation link.
+     * Rendered from the {@code email/verify-email} Thymeleaf template.
+     */
+    @Async("emailTaskExecutor")
+    public void sendVerificationEmail(String toEmail, String userName, String verificationLink) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("userName", userName);
+            ctx.setVariable("verificationLink", verificationLink);
+
+            String html = templateEngine.process("email/verify-email", ctx);
+
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject("Vérifiez votre adresse email — UniEvent");
+            helper.setText(html, true);
+
+            mailSender.send(msg);
+            log.debug("Verification email sent to {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
     private String resolveTemplate(NotificationTypeEnum type) {
         return switch (type) {
             case REGISTRATION_CONFIRMED -> "email/registration-confirmed";

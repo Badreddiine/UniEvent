@@ -4,6 +4,7 @@ import com.unievt.dto.LoginRequestDTO;
 import com.unievt.dto.LoginResponseDTO;
 import com.unievt.dto.RefreshTokenRequestDTO;
 import com.unievt.dto.RegisterRequestDTO;
+import com.unievt.dto.RegisterResponseDTO;
 import com.unievt.security.CustomUserDetails;
 import com.unievt.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,16 +35,32 @@ public class AuthController {
 
     @Operation(
         summary = "Register a new account",
-        description = "Creates a user with no permission role and immediately returns JWT tokens.")
+        description = "Creates a disabled user and sends a verification email. "
+            + "The account must be activated via the link before login is possible.")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Account created — tokens returned",
-            content = @Content(schema = @Schema(implementation = LoginResponseDTO.class))),
+        @ApiResponse(responseCode = "201", description = "Account created — verification email sent",
+            content = @Content(schema = @Schema(implementation = RegisterResponseDTO.class))),
         @ApiResponse(responseCode = "409", description = "Email already in use"),
         @ApiResponse(responseCode = "400", description = "Validation error")
     })
     @PostMapping("/register")
-    public ResponseEntity<LoginResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
+    public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(dto));
+    }
+
+    // ── GET /api/auth/verify-email ────────────────────────────────────────────
+
+    @Operation(
+        summary = "Verify email and activate account",
+        description = "Validates the verification token, activates the account and returns JWT tokens.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Email verified — tokens returned",
+            content = @Content(schema = @Schema(implementation = LoginResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Token invalid or expired")
+    })
+    @GetMapping("/verify-email")
+    public ResponseEntity<LoginResponseDTO> verifyEmail(@RequestParam("token") String token) {
+        return ResponseEntity.ok(authService.verifyEmail(token));
     }
 
     // ── POST /api/auth/login ──────────────────────────────────────────────────

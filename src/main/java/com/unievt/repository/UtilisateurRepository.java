@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
 
     Optional<Utilisateur> findByEmail(String email);
+    Optional<Utilisateur> findByVerificationToken(String verificationToken);
     boolean existsByEmail(String email);
 }

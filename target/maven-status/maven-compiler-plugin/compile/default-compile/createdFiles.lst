@@ -109,6 +109,7 @@ com\unievt\service\AuthService.class
 com\unievt\service\EtudiantService.class
 com\unievt\dto\EventSponsorDto.class
 com\unievt\entity\RefreshToken.class
+com\unievt\dto\RegisterResponseDTO$RegisterResponseDTOBuilder.class
 com\unievt\dto\SalleDTO$SalleDTOBuilder.class
 com\unievt\mapper\InscriptionMapperImpl.class
 com\unievt\dto\ClubUpdateDTO$ClubUpdateDTOBuilder.class
@@ -139,6 +140,7 @@ com\unievt\scheduler\EventReminderScheduler.class
 com\unievt\service\IntervenantService.class
 com\unievt\dto\ClubCreateDTO.class
 com\unievt\dto\InscriptionResponseDTO.class
+com\unievt\dto\RegisterResponseDTO.class
 com\unievt\dto\EventSponsorDto$EventSponsorDtoBuilder.class
 com\unievt\service\ClubService.class
 com\unievt\mapper\ReservationMapper.class
