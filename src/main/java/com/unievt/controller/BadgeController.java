@@ -43,6 +43,22 @@ public class BadgeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    @Operation(summary = "Get (or lazily create) the badge for a registration",
+               description = "Idempotent GET: returns the existing badge, creating it on first access. "
+                   + "Safe for clients that may fire duplicate requests. "
+                   + "The `qrImage` field contains a Base64-encoded PNG.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Badge returned",
+            content = @Content(schema = @Schema(implementation = BadgeDto.class))),
+        @ApiResponse(responseCode = "404", description = "Registration not found")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @GetMapping("/api/registrations/{id}/badge")
+    public ResponseEntity<BadgeDto> getBadge(
+            @Parameter(description = "Registration (inscription) ID") @PathVariable Long id) {
+        return ResponseEntity.ok(badgeService.generateForRegistration(id));
+    }
+
     @Operation(summary = "Verify a badge token (public endpoint)",
                description = "Validates a badge token and returns badge details. "
                    + "No authentication required — suitable for scanning at event entry.")
