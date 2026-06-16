@@ -96,7 +96,7 @@ function LoginContent() {
         const data = err.response.data as { message?: string } | string | undefined;
         const backendMsg =
           typeof data === "string" ? data : data?.message ?? "";
-        if (/email|vérif|verif|disabled|Veuillez/i.test(backendMsg)) {
+        if (/disabled|activé|active|vérif|verif|email|Veuillez/i.test(backendMsg)) {
           setNeedsVerification(true);
         } else {
           setError("Email ou mot de passe incorrect.");

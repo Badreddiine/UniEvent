@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton } from "@/components/shared/back-button";
@@ -47,8 +47,14 @@ function TicketModal({
   const [badge, setBadge] = useState<BadgeDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  // Prevent the double badge generation triggered by React StrictMode's
+  // double-invoked effect (and any re-render of this modal).
+  const requestedRef = useRef(false);
 
   useEffect(() => {
+    if (requestedRef.current) return;
+    requestedRef.current = true;
+
     let active = true;
     setLoading(true);
     setError(false);
